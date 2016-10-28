@@ -53,15 +53,15 @@ parseTemp = do
   fd <- parseDate <* comma
   ncod <- decimal <* comma
   ind_empl <- parseEmployeeStatus <* comma
-  pais' <- parseCountry <* comma
-  sexo' <- parseGender <* comma
-  age <- decimal <* comma
-  fecha_alta' <- parseDate <* comma
-  ind_nuevo' <- parseBit <* comma
-  antiguedad' <- decimal <* comma
-  indrel' <- parseIndRel <* comma
+  p <- parseCountry <* comma
+  s <- parseGender <* comma
+  a <- decimal <* comma
+  fa <- parseDate <* comma
+  indn <- parseBit <* comma
+  ant <- decimal <* comma
+  indr <- parseIndRel <* comma
   ult <- PB.option 0 (decimal <* comma)
-  indrel_1mes' <- parseIndRel1Mes <* comma
+  indr1m <- parseIndRel1Mes <* comma
   -- tiprel_1mes' <- parseTipRel1Mes <* comma
   -- indresi' <- parseBooleanES <* comma
   -- indext' <- parseBooleanES <* comma
@@ -74,7 +74,7 @@ parseTemp = do
   -- ind_actividad' <- parseBit <* comma
   -- renta' <- rational <* comma
   -- segment' <- parseSegment <* comma
-  return (antiguedad', indrel' ,ult, indrel_1mes')
+  return (fd, ncod, ind_empl, p, s, a, fa, indn, ant, indr ,ult, indr1m)
   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
 
 
