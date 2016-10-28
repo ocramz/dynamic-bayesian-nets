@@ -39,11 +39,11 @@ data CustomerData =
                 pais :: Country,
                 sexo :: Gender,
                 age :: Int,
-                fecha_alta :: Day,   -- date
+                fecha_alta :: Day,         -- date
                 ind_nuevo :: Bool,
                 antiguedad :: Int,   
                 indrel :: Bool,
-                ult_fec_cli_1t :: Int, -- can be empty
+                ult_fec_cli_1t :: Int,     -- can be empty
                 indrel_1mes :: IndRel1Mes,
                 tiprel_1mes :: TipRel1Mes,
                 indresi :: Bool,
@@ -68,7 +68,7 @@ parseCustomerData = do
   sexo' <- parseGender <* comma
   age' <- decimal <* comma
   fecha_alta' <- parseDate <* comma
-  ind_nuevo' <- parseIndNuevo <* comma
+  ind_nuevo' <- parseBit <* comma
   antiguedad' <- decimal <* comma
   indrel' <- parseIndRel <* comma
   ult_fec_cli_1t' <- PB.option 0 (decimal <* comma)
@@ -76,13 +76,13 @@ parseCustomerData = do
   tiprel_1mes' <- parseTipRel1Mes <* comma 
   indresi' <- parseBooleanES <* comma
   indext' <- parseBooleanES <* comma
-  conyuemp' <- PB.option False (parseConyuEmp <* comma)
+  conyuemp' <- PB.option False (parseBit <* comma)
   canalentrada' <- parseCanalEntrada <* comma
   deceased' <- parseBooleanES <* comma
-  tipodom' <- (char '1' >> return True ) <* comma
+  tipodom' <- parseBit <* comma
   codprov' <- decimal <* comma
   nomProv' <- parseProvince <* comma
-  ind_actividad' <- (char '1' >> return True) <* comma
+  ind_actividad' <- parseBit <* comma
   renta' <- rational <* comma
   segment' <- parseSegment <* comma
   return $ CustomerData fd ncod ind_empl pais' sexo' age' fecha_alta' ind_nuevo' antiguedad' indrel' ult_fec_cli_1t' indrel_1mes' tiprel_1mes' indresi' indext' conyuemp' canalentrada' deceased' tipodom' codprov' nomProv' ind_actividad' renta' segment'
@@ -98,13 +98,11 @@ data Responses =
              ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Bool} deriving (Eq, Show)
 
 parseResponses :: Parser B.ByteString Responses
-parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBool
+parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBit
 
-parseBool :: Parser B.ByteString Bool
-parseBool = (char8 '1' >> return True) <|>
-            (char8 '0' >> return False)
+
 parseBEntry :: Parser B.ByteString Bool            
-parseBEntry = parseBool <* comma
+parseBEntry = parseBit <* comma
 
 
 
@@ -121,20 +119,21 @@ parseDate = do
   return $ fromGregorian y m d
 
 -- ind_empleado	Employee index: A active, B ex employed, F filial, N not employee, P pasive
-data EmployeeStatus = Active | ExEmployee | Filial | NotEmployee | Passive deriving (Eq, Show)
+data EmployeeStatus = Active | ExEmployee | Filial | NotEmployee | Passive | EmployeeStatus_NA deriving (Eq, Show)
 parseEmployeeStatus :: Parser B.ByteString EmployeeStatus
 parseEmployeeStatus = (char8 'A' >> return Active) <|>
                       (char8 'B' >> return ExEmployee) <|>
                       (char8 'F' >> return Filial) <|>
                       (char8 'N' >> return NotEmployee) <|>
-                      (char8 'P' >> return Passive)
+                      (char8 'P' >> return Passive) <|>
+                      (char8 ' ' >> return EmployeeStatus_NA)
 
 data Gender = M | F deriving (Eq, Show)
 parseGender :: Parser B.ByteString Gender
 parseGender = (char8 'H' >> return M) <|> (char8 'V' >> return F)
 
-parseIndNuevo :: Parser B.ByteString Bool
-parseIndNuevo = char8 '1' >> return True
+parseBit :: Parser B.ByteString Bool
+parseBit = (char8 '1' >> return True) <|> (char8 '0' >> return False)
 
 
 -- indrel	1 (First/Primary), 99 (Primary customer during the month but not at the end of the month)
@@ -143,20 +142,22 @@ parseIndRel = (PB.string "1" >> return True) <|>
               (PB.string "99" >> return False)
 
 -- indrel_1mes	Customer type at the beginning of the month ,1 (First/Primary customer), 2 (co-owner ),P (Potential),3 (former primary), 4(former co-owner)
-data IndRel1Mes = Primary | CoOwner | Potential | FormerPrimary | FormerCoOwner deriving (Eq, Show)
+data IndRel1Mes = Primary | CoOwner | Potential | FormerPrimary | FormerCoOwner | IndRel1Mes_NA deriving (Eq, Show)
 parseIndRel1Mes :: Parser B.ByteString IndRel1Mes
 parseIndRel1Mes = (char8 '1' >> return Primary) <|>
                  (char8 '2' >> return CoOwner) <|>
                  (char8 'P' >> return Potential) <|>
                  (char8 '3' >> return FormerPrimary) <|>
-                 (char8 '4' >> return FormerCoOwner)
+                 (char8 '4' >> return FormerCoOwner) <|>
+                 (char8 ' ' >> return IndRel1Mes_NA)
 
 -- tiprel_1mes	Customer relation type at the beginning of the month, A (active), I (inactive), P (former customer),R (Potential)
-data TipRel1Mes = TRActive | TRInactive | TRFormerCustomer | TRPotential deriving (Eq, Show)
+data TipRel1Mes = TRActive | TRInactive | TRFormerCustomer | TRPotential | TR_NA deriving (Eq, Show)
 parseTipRel1Mes = (char8 'A' >> return TRActive) <|>
                  (char8 'I' >> return TRInactive) <|>
                  (char8 'P' >> return TRFormerCustomer) <|>
-                 (char8 'R' >> return TRPotential) 
+                 (char8 'R' >> return TRPotential) <|>
+                 (char8 ' ' >> return TR_NA)
 
 -- indresi	Residence index (S (Yes) or N (No) if the residence country is the same than the bank country)
 -- indext	Foreigner index (S (Yes) or N (No) if the customer's birth country is different than the bank country)
@@ -165,8 +166,6 @@ parseBooleanES :: Parser B.ByteString Bool
 parseBooleanES = (char8 'S' >> return True) <|>
                  (char8 'N' >> return False)
 
-parseConyuEmp :: Parser B.ByteString Bool
-parseConyuEmp = char8 '1' >> return True                 
 
 data CanalEntrada = KHE | KAT deriving (Eq, Show)
 parseCanalEntrada :: Parser B.ByteString CanalEntrada

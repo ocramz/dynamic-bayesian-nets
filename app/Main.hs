@@ -12,18 +12,19 @@ import qualified Data.Attoparsec.ByteString as PB
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
 
+import Control.Applicative
 
 
 main = do
   csv <- B.readFile "test-data/train-part-noheader.csv"
-  case parseOnly parserTemp csv of
+  case parseOnly parseTemp csv of
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
 
 
 
-parserTemp = do
+parseTemp = do
   fd <- parseDate <* comma
   ncod <- decimal <* comma
   ind_empl <- parseEmployeeStatus <* comma
@@ -31,12 +32,26 @@ parserTemp = do
   sexo' <- parseGender <* comma
   age <- decimal <* comma
   fecha_alta' <- parseDate <* comma
-  ind_nuevo' <- parseIndNuevo <* comma
+  ind_nuevo' <- parseBit <* comma
   antiguedad' <- decimal <* comma
-  -- indrel' <- parseIndRel <* comma
-  -- ult_fec_cli_1t' <- PB.option 0 (decimal <* comma)
+  indrel' <- parseIndRel <* comma
+  ult <- PB.option 0 (decimal <* comma)
+  indrel_1mes' <- parseIndRel1Mes <* comma
+  tiprel_1mes' <- parseTipRel1Mes <* comma
+  indresi' <- parseBooleanES <* comma
+  -- indext' <- parseBooleanES <* comma
+  -- conyuemp' <- PB.option False (parseBit <* comma)
+  -- canalentrada' <- parseCanalEntrada <* comma
+  -- deceased' <- parseBooleanES <* comma
+  -- tipodom' <- parseBit <* comma
+  -- codprov' <- decimal <* comma
+  -- nomProv' <- parseProvince <* comma
+  -- ind_actividad' <- parseBit <* comma
+  -- renta' <- rational <* comma
+  -- segment' <- parseSegment <* comma
+  return indresi'
   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
-  return ind_nuevo'
+
 
 -- data T0 = T0 {prova0 :: !Int, prova1 :: !String} deriving (Eq, Show, Generic)
 -- instance FromNamedRecord T0 where
