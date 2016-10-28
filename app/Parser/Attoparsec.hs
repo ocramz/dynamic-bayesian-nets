@@ -130,9 +130,9 @@ parseEmployeeStatus = (char8 'A' >> return Active) <|>
                       (char8 'P' >> return Passive) <|>
                       (char8 ' ' >> return EmployeeStatus_NA)
 
-data Gender = M | F deriving (Eq, Show)
+data Gender = Male | Female deriving (Eq, Show)
 parseGender :: Parser B.ByteString Gender
-parseGender = (char8 'H' >> return M) <|> (char8 'V' >> return F)
+parseGender = (char8 'H' >> return Male) <|> (char8 'V' >> return Female)
 
 
 
@@ -146,19 +146,19 @@ parseIndRel = (PB.string "1" >> return True) <|>
 data IndRel1Mes = Primary | CoOwner | Potential | FormerPrimary | FormerCoOwner | IndRel1Mes_NA deriving (Eq, Show)
 parseIndRel1Mes :: Parser B.ByteString IndRel1Mes
 parseIndRel1Mes = (char8 '1' >> return Primary) <|>
-                 (char8 '2' >> return CoOwner) <|>
-                 (char8 'P' >> return Potential) <|>
-                 (char8 '3' >> return FormerPrimary) <|>
-                 (char8 '4' >> return FormerCoOwner) <|>
-                 (char8 ' ' >> return IndRel1Mes_NA)
+                  (char8 '2' >> return CoOwner) <|>
+                  (char8 'P' >> return Potential) <|>
+                  (char8 '3' >> return FormerPrimary) <|>
+                  (char8 '4' >> return FormerCoOwner) <|>
+                  (char8 ' ' >> return IndRel1Mes_NA)
 
 -- tiprel_1mes	Customer relation type at the beginning of the month, A (active), I (inactive), P (former customer),R (Potential)
 data TipRel1Mes = TRActive | TRInactive | TRFormerCustomer | TRPotential | TR_NA deriving (Eq, Show)
 parseTipRel1Mes = (char8 'A' >> return TRActive) <|>
-                 (char8 'I' >> return TRInactive) <|>
-                 (char8 'P' >> return TRFormerCustomer) <|>
-                 (char8 'R' >> return TRPotential) <|>
-                 (char8 ' ' >> return TR_NA)
+                  (char8 'I' >> return TRInactive) <|>
+                  (char8 'P' >> return TRFormerCustomer) <|>
+                  (char8 'R' >> return TRPotential) <|>
+                  (char8 ' ' >> return TR_NA)
 
 -- indresi	Residence index (S (Yes) or N (No) if the residence country is the same than the bank country)
 -- indext	Foreigner index (S (Yes) or N (No) if the customer's birth country is different than the bank country)

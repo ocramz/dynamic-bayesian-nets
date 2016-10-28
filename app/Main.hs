@@ -62,7 +62,7 @@ parseTemp = do
   indr <- parseIndRel <* comma
   ult <- PB.option 0 (decimal <* comma)
   indr1m <- parseIndRel1Mes <* comma
-  -- tiprel_1mes' <- parseTipRel1Mes <* comma
+  tipr1m <- parseTipRel1Mes <* comma
   -- indresi' <- parseBooleanES <* comma
   -- indext' <- parseBooleanES <* comma
   -- conyuemp' <- PB.option False (parseBit <* comma)
@@ -74,7 +74,7 @@ parseTemp = do
   -- ind_actividad' <- parseBit <* comma
   -- renta' <- rational <* comma
   -- segment' <- parseSegment <* comma
-  return (fd, ncod, ind_empl, p, s, a, fa, indn, ant, indr ,ult, indr1m)
+  return (fd, ncod, ind_empl, p, s, a, fa, indn, ant, indr, ult, indr1m, tipr1m)
   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
 
 
