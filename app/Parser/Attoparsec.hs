@@ -60,6 +60,8 @@ data CustomerData =
                 } deriving (Eq, Show)
 
 
+parserMaybe p = PB.option Nothing $ (Just <$> p)--  <* comma
+
 
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do

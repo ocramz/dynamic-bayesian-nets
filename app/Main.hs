@@ -7,20 +7,18 @@ import Text.Printf (printf)
 
 
 import Parser.Attoparsec
-import Data.Attoparsec.ByteString.Char8  hiding (take)
+import Data.Attoparsec.ByteString.Char8  hiding (ByteString, take)
 import qualified Data.Attoparsec.ByteString as PB hiding (skip,skipWhile,take)
 
 -- import qualified Data.List as List
 -- import qualified Data.ByteString.Lazy as B hiding (split, pack)
-import qualified Data.ByteString.Char8 as B hiding (ByteString)-- (split, pack)
+import qualified Data.ByteString.Lazy.Char8 as B hiding (ByteString)-- (split, pack)
 import qualified Data.Vector as V
 
 import Control.Applicative
 
 
-testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-
--- main = parseLogic "03 - UNIVERSITARIO"
+-- main = putStrLn "hi"
 
 -- main = do
 --   csv <- B.readFile "test-data/train-part-noheader.csv"
@@ -28,32 +26,27 @@ testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD
 
 main = do
   let (feats, resps) = preprocessRow testStr
-  case parseOnly parseResponses resps of
-    Left e -> putStrLn e
-    Right r -> print r
-
-
-parseLogic x =
-  -- parseTest parseTemp x
-  case parseOnly parseSegment x of 
+  case PB.parseOnly parseResponses resps of
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
+    where
+      testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 
 
--- splitOn _ [] = []
--- splitOn c ll = h : splitOn c t' where
---   (h, t) = B.span (/= c) ll
---   t' | B.null t = []
---      | otherwise = B.tail t
+-- -- splitOn _ [] = []
+-- -- splitOn c ll = h : splitOn c t' where
+-- --   (h, t) = B.span (/= c) ll
+-- --   t' | B.null t = []
+-- --      | otherwise = B.tail t
 
-preprocessRow r = (feat, resp) -- (unwords features, unwords responses)
+preprocessRow r = (feat, resp)
   where
     n = 24
     rc = B.split ',' r
     feat = intercf $ take n rc
     resp = intercf $ drop n rc
-    intercf = B.intercalate (B.pack ",")
+    intercf = B.toStrict . B.intercalate (B.pack ",")
 
 
 
