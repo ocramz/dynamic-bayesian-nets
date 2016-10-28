@@ -24,6 +24,7 @@ library
                      , vector
                      , attoparsec
                      , cassava
+                     , split
                      , time
                      , fgl
 
@@ -35,7 +36,9 @@ executable dynamic-bayesian-nets
   build-depends:       base
                      , attoparsec
                      , bytestring
+                     , vector
                      , time
+                     , split
                      , dynamic-bayesian-nets
 
 test-suite spec

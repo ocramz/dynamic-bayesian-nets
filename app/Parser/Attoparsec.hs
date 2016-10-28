@@ -4,7 +4,7 @@ module Parser.Attoparsec where
 import Data.Word
 import Data.Attoparsec.Internal.Types (Parser)
 import qualified Data.Attoparsec.ByteString as PB
-import Data.Attoparsec.ByteString.Char8 (decimal, signed, scientific, digit, rational, char, char8, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace)
+import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rational, char, char8, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace)
 
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
@@ -59,6 +59,8 @@ data CustomerData =
                 segment :: Segment
                 } deriving (Eq, Show)
 
+
+
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
   fd <- parseDate <* comma
@@ -83,7 +85,7 @@ parseCustomerData = do
   cod_prov <- decimal <* comma
   nom_prov <- parseProvince <* comma
   ind_activ <- parseBit <* comma
-  salary <- rational <* comma
+  salary <- double <* comma
   segm <- parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
@@ -162,15 +164,15 @@ parseTipRel1Mes = (char8 'A' >> return TRActive) <|>
 
 -- indresi	Residence index (S (Yes) or N (No) if the residence country is the same than the bank country)
 -- indext	Foreigner index (S (Yes) or N (No) if the customer's birth country is different than the bank country)
--- conyuemp	Spouse index. 1 if the customer is spouse of an employee
 parseBooleanES :: Parser B.ByteString Bool
 parseBooleanES = (char8 'S' >> return True) <|>
                  (char8 'N' >> return False)
 
 
-data CanalEntrada = KHE | KAT deriving (Eq, Show)
+data CanalEntrada = KHE | KHD | KAT deriving (Eq, Show)
 parseCanalEntrada :: Parser B.ByteString CanalEntrada
 parseCanalEntrada = (PB.string "KHE" >> return KHE) <|>
+                    (PB.string "KHD" >> return KHD) <|>
                     (PB.string "KAT" >> return KAT)
   
 data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid

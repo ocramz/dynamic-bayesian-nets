@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import Lib 
@@ -6,21 +7,58 @@ import Text.Printf (printf)
 
 
 import Parser.Attoparsec
-import Data.Attoparsec.Char8
-import qualified Data.Attoparsec.ByteString as PB
+import Data.Attoparsec.ByteString.Char8  hiding (take)
+import qualified Data.Attoparsec.ByteString as PB hiding (skip,skipWhile,take)
 
-import qualified Data.ByteString as B
+-- import qualified Data.List as List
+-- import qualified Data.ByteString.Lazy as B hiding (split, pack)
+import qualified Data.ByteString.Char8 as B hiding (ByteString)-- (split, pack)
 import qualified Data.Vector as V
 
 import Control.Applicative
 
 
+testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+
+-- main = parseLogic "03 - UNIVERSITARIO"
+
+-- main = do
+--   csv <- B.readFile "test-data/train-part-noheader.csv"
+--   parseLogic csv
+
 main = do
-  csv <- B.readFile "test-data/train-part-noheader.csv"
-  case parseOnly parseTemp csv of
+  let (feats, resps) = preprocessRow testStr
+  case parseOnly parseResponses resps of
+    Left e -> putStrLn e
+    Right r -> print r
+
+
+parseLogic x =
+  -- parseTest parseTemp x
+  case parseOnly parseSegment x of 
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
+
+
+-- splitOn _ [] = []
+-- splitOn c ll = h : splitOn c t' where
+--   (h, t) = B.span (/= c) ll
+--   t' | B.null t = []
+--      | otherwise = B.tail t
+
+preprocessRow r = (feat, resp) -- (unwords features, unwords responses)
+  where
+    n = 24
+    rc = B.split ',' r
+    feat = intercf $ take n rc
+    resp = intercf $ drop n rc
+    intercf = B.intercalate (B.pack ",")
+
+
+
+
+    
 {-
 2015-01-28,
 1050611,
@@ -49,6 +87,12 @@ CIUDAD REAL,
 0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 -}
 
+skipField = 
+  skipWhile (\c -> isAlpha_ascii c || isDigit c || isSpace c)
+
+-- splitFields = splitOn ","
+
+
 parseTemp = do
   fd <- parseDate <* comma
   ncod <- decimal <* comma
@@ -62,19 +106,27 @@ parseTemp = do
   indr <- parseIndRel <* comma
   ult <- PB.option 0 (decimal <* comma)
   indr1m <- parseIndRel1Mes <* comma
-  tipr1m <- parseTipRel1Mes <* comma
-  -- indresi' <- parseBooleanES <* comma
-  -- indext' <- parseBooleanES <* comma
-  -- conyuemp' <- PB.option False (parseBit <* comma)
-  -- canalentrada' <- parseCanalEntrada <* comma
-  -- deceased' <- parseBooleanES <* comma
-  -- tipodom' <- parseBit <* comma
-  -- codprov' <- decimal <* comma
-  -- nomProv' <- parseProvince <* comma
-  -- ind_actividad' <- parseBit <* comma
-  -- renta' <- rational <* comma
-  -- segment' <- parseSegment <* comma
-  return (fd, ncod, ind_empl, p, s, a, fa, indn, ant, indr, ult, indr1m, tipr1m)
+  tipr1m <- PB.option TR_NA (parseTipRel1Mes <* comma)
+  indrs <- parseBooleanES <* comma
+  indxt <- parseBooleanES <* comma
+  conyu <- PB.option False (parseBit <* comma)
+  -- canale <- parseCanalEntrada <* comma
+  -- -- skipField
+  -- -- dead <- parseBooleanES <* comma
+  -- skipField
+  -- -- tipod <- parseBit <* comma
+  -- skipField
+  -- -- codpr <- decimal <* comma
+  -- skipField
+  -- nomprov <- parseProvince <* comma
+  -- skipField
+  -- -- ind_actividad' <- parseBit <* comma
+  -- skipField
+  -- -- sal <- rational <* comma
+  -- -- segm <- parseSegment <* comma
+  -- skipField
+  -- endOfLine
+  return (fd, ncod, ind_empl, p, s, a, fa, indn, ant, indr1m, tipr1m, indrs, indxt, conyu)
   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
 
 
