@@ -73,7 +73,7 @@ parseCustomerData = do
   indrel' <- parseIndRel <* comma
   ult_fec_cli_1t' <- PB.option 0 (decimal <* comma)
   indrel_1mes' <- parseIndRel1Mes <* comma
-  tiprel_1mes' <- parseTipRel1Mes <* comma 
+  tiprel_1mes' <- parseTipRel1Mes <* comma         -- FIXME
   indresi' <- parseBooleanES <* comma
   indext' <- parseBooleanES <* comma
   conyuemp' <- PB.option False (parseBit <* comma)
@@ -101,6 +101,9 @@ parseResponses :: Parser B.ByteString Responses
 parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBit
 
 
+parseBit :: Parser B.ByteString Bool
+parseBit = (char8 '1' >> return True) <|> (char8 '0' >> return False)
+
 parseBEntry :: Parser B.ByteString Bool            
 parseBEntry = parseBit <* comma
 
@@ -118,7 +121,6 @@ parseDate = do
   d <- decimal
   return $ fromGregorian y m d
 
--- ind_empleado	Employee index: A active, B ex employed, F filial, N not employee, P pasive
 data EmployeeStatus = Active | ExEmployee | Filial | NotEmployee | Passive | EmployeeStatus_NA deriving (Eq, Show)
 parseEmployeeStatus :: Parser B.ByteString EmployeeStatus
 parseEmployeeStatus = (char8 'A' >> return Active) <|>
@@ -132,8 +134,7 @@ data Gender = M | F deriving (Eq, Show)
 parseGender :: Parser B.ByteString Gender
 parseGender = (char8 'H' >> return M) <|> (char8 'V' >> return F)
 
-parseBit :: Parser B.ByteString Bool
-parseBit = (char8 '1' >> return True) <|> (char8 '0' >> return False)
+
 
 
 -- indrel	1 (First/Primary), 99 (Primary customer during the month but not at the end of the month)

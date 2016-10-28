@@ -21,8 +21,33 @@ main = do
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
-
-
+{-
+2015-01-28,
+1050611,
+N,
+ES,
+V,
+23,
+2012-08-10,
+0,
+35,
+1,  -- indrel
+ ,  -- ult
+1,  -- indrel1mes
+I,  -- tiprel1mes
+S,  -- indresi
+S,  -- indext
+ ,  -- conyuemp
+KHE,
+N,
+1,
+13,
+CIUDAD REAL,
+0,
+35548.74,
+03 - UNIVERSITARIO,
+0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+-}
 
 parseTemp = do
   fd <- parseDate <* comma
@@ -37,8 +62,8 @@ parseTemp = do
   indrel' <- parseIndRel <* comma
   ult <- PB.option 0 (decimal <* comma)
   indrel_1mes' <- parseIndRel1Mes <* comma
-  tiprel_1mes' <- parseTipRel1Mes <* comma
-  indresi' <- parseBooleanES <* comma
+  -- tiprel_1mes' <- parseTipRel1Mes <* comma
+  -- indresi' <- parseBooleanES <* comma
   -- indext' <- parseBooleanES <* comma
   -- conyuemp' <- PB.option False (parseBit <* comma)
   -- canalentrada' <- parseCanalEntrada <* comma
@@ -49,7 +74,7 @@ parseTemp = do
   -- ind_actividad' <- parseBit <* comma
   -- renta' <- rational <* comma
   -- segment' <- parseSegment <* comma
-  return indresi'
+  return indrel_1mes'
   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
 
 
