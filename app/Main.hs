@@ -74,7 +74,7 @@ parseTemp = do
   -- ind_actividad' <- parseBit <* comma
   -- renta' <- rational <* comma
   -- segment' <- parseSegment <* comma
-  return indrel_1mes'
+  return (antiguedad', indrel' ,ult, indrel_1mes')
   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
 
 

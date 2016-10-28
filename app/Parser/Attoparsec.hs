@@ -64,28 +64,28 @@ parseCustomerData = do
   fd <- parseDate <* comma
   ncod <- decimal <* comma
   ind_empl <- parseEmployeeStatus <* comma
-  pais' <- parseCountry <* comma
-  sexo' <- parseGender <* comma
-  age' <- decimal <* comma
-  fecha_alta' <- parseDate <* comma
-  ind_nuevo' <- parseBit <* comma
-  antiguedad' <- decimal <* comma
-  indrel' <- parseIndRel <* comma
-  ult_fec_cli_1t' <- PB.option 0 (decimal <* comma)
-  indrel_1mes' <- parseIndRel1Mes <* comma
-  tiprel_1mes' <- parseTipRel1Mes <* comma         -- FIXME
-  indresi' <- parseBooleanES <* comma
-  indext' <- parseBooleanES <* comma
-  conyuemp' <- PB.option False (parseBit <* comma)
-  canalentrada' <- parseCanalEntrada <* comma
-  deceased' <- parseBooleanES <* comma
-  tipodom' <- parseBit <* comma
-  codprov' <- decimal <* comma
-  nomProv' <- parseProvince <* comma
-  ind_actividad' <- parseBit <* comma
-  renta' <- rational <* comma
-  segment' <- parseSegment <* comma
-  return $ CustomerData fd ncod ind_empl pais' sexo' age' fecha_alta' ind_nuevo' antiguedad' indrel' ult_fec_cli_1t' indrel_1mes' tiprel_1mes' indresi' indext' conyuemp' canalentrada' deceased' tipodom' codprov' nomProv' ind_actividad' renta' segment'
+  country <- parseCountry <* comma
+  gender <- parseGender <* comma
+  a <- decimal <* comma
+  fa <- parseDate <* comma
+  newcustomer <- parseBit <* comma
+  acct_age <- decimal <* comma
+  ir <- parseIndRel <* comma
+  ufc1t <- PB.option 0 (decimal <* comma)
+  ir_1m <- parseIndRel1Mes <* comma
+  tr_1m <- parseTipRel1Mes <* comma         -- FIXME
+  ind_resi <- parseBooleanES <* comma
+  ind_ext <- parseBooleanES <* comma
+  conyu_emp <- PB.option False (parseBit <* comma)
+  canale <- parseCanalEntrada <* comma
+  dead <- parseBooleanES <* comma
+  tipo_dom <- parseBit <* comma
+  cod_prov <- decimal <* comma
+  nom_prov <- parseProvince <* comma
+  ind_activ <- parseBit <* comma
+  salary <- rational <* comma
+  segm <- parseSegment <* comma
+  return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
 data Responses =
   Responses {ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1,
