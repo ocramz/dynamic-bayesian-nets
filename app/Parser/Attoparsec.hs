@@ -12,36 +12,19 @@ import Control.Applicative ((<|>))
 
 import Data.Time
 
--- data Customer0 =
---   Customer0 { fecha_dato :: !String,
---               ncodpers :: !Int,
---               ind_empleado :: !Char,
---               pais_residencia :: !String,
---               sexo :: !Char,
---               age :: !Int,
---               fecha_alta :: !String,       --date
---               ind_nuevo :: !Int,
---               antiguedad :: !Int,
---               indrel :: !Int,
---               ult_fec_cli_1t :: !String,
---               indrel_1mes :: !Double,
---               tiprel_1mes :: !Char,
---               indresi :: !Char,
---               indext :: !Char,
---               conyuemp :: !Char,
---               canal_entrada :: !String,
---               indfall :: !Char,
---               tipodom :: !Int,
---               cod_prov :: !Int,
---               nomprov :: !String,
---               ind_actividad_cliente :: !Int,
---               renta :: !Double,
---               segmento :: !String,
---               ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1, ind_cder_fin_ult1, ind_cno_fin_ult1, ind_ctju_fin_ult1, ind_ctma_fin_ult1, ind_ctop_fin_ult1, ind_ctpp_fin_ult1, ind_deco_fin_ult1, ind_deme_fin_ult1, ind_dela_fin_ult1, ind_ecue_fin_ult1, ind_fond_fin_ult1, ind_hip_fin_ult1, ind_plan_fin_ult1, ind_pres_fin_ult1, ind_reca_fin_ult1, ind_tjcr_fin_ult1, ind_valo_fin_ult1, ind_viv_fin_ult1, ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1 :: !Int} deriving (Eq, Show)
+
 
 -- 2016-06-28,15889,F,ES,V,56,1995-01-16,0,256,1,,1,A,S,N,N,KAT,N,1,28,"MADRID",1,326124.9,01 - TOP
 -- 2016-06-28,1170544,N,ES,H,36,2013-08-28,0,34,1,,1,I,S,N,,KAT,N,1,3,"ALICANTE",0,,02 - PARTICULARES
 -- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
+
+parseCustomer = do
+  cd <- parseCustomerData
+  cr <- parseResponses <* endOfLine
+  return $ Customer cd cr
+
+data Customer = Customer CustomerData Responses
+
 
 data CustomerData =
   CustomerData {fecha_dato :: Day,
@@ -68,62 +51,54 @@ data CustomerData =
                 ind_actividad :: Bool,
                 renta :: Double,
                 segment :: Segment
-                }
+                } deriving (Eq, Show)
 
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
-  fecha_dato <- parseDate
-  comma
-  ncodpers <- decimal
-  comma
-  ind_empleado <- parseEmployeeStatus
-  comma
-  pais <- parseCountry
-  comma
-  sexo <- parseGender
-  comma
-  age <- decimal
-  comma
-  fecha_alta <- parseDate
-  comma
-  ind_nuevo <- parseIndNuevo
-  comma
-  antiguedad <- decimal
-  comma
-  indrel <- parseIndRel
-  comma
-  ult_fec_cli_1t <- decimal
-  comma
-  indrel_1mes <- parseIndRel1Mes
-  comma
-  tiprel_1mes <- parseTipRel1Mes
-  comma
-  indresi <- parseBooleanES
-  comma
-  indext <- parseBooleanES
-  comma
-  conyuemp <- parseConyuEmp
-  comma
-  canalentrada <- parseCanalEntrada
-  comma
-  deceased <- parseBooleanES
-  comma
-  tipodom <- char '1' >> return True
-  comma
-  codprov <- decimal
-  comma
-  nomProv <- parseProvince
-  comma
-  ind_actividad <- char '1' >> return True
-  comma
-  renta <- rational
-  comma
-  segment <- parseSegment
-  comma
+  fecha_dato <- parseDate <* comma
+  ncodpers <- decimal <* comma
+  ind_empleado <- parseEmployeeStatus <* comma
+  pais <- parseCountry <* comma
+  sexo <- parseGender <* comma
+  age <- decimal <* comma
+  fecha_alta <- parseDate <* comma
+  ind_nuevo <- parseIndNuevo <* comma
+  antiguedad <- decimal <* comma
+  indrel <- parseIndRel <* comma
+  ult_fec_cli_1t <- decimal <* comma
+  indrel_1mes <- parseIndRel1Mes <* comma
+  tiprel_1mes <- parseTipRel1Mes <* comma 
+  indresi <- parseBooleanES <* comma
+  indext <- parseBooleanES <* comma
+  conyuemp <- parseConyuEmp <* comma
+  canalentrada <- parseCanalEntrada <* comma
+  deceased <- parseBooleanES <* comma
+  tipodom <- (char '1' >> return True ) <* comma
+  codprov <- decimal <* comma
+  nomProv <- parseProvince <* comma
+  ind_actividad <- (char '1' >> return True) <* comma
+  renta <- rational <* comma
+  segment <- parseSegment <* comma
   return $ CustomerData fecha_dato ncodpers ind_empleado pais sexo age fecha_alta ind_nuevo antiguedad indrel ult_fec_cli_1t indrel_1mes tiprel_1mes indresi indext conyuemp canalentrada deceased tipodom codprov nomProv ind_actividad renta segment
 
--- responses
--- ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1, ind_cder_fin_ult1, ind_cno_fin_ult1, ind_ctju_fin_ult1, ind_ctma_fin_ult1, ind_ctop_fin_ult1, ind_ctpp_fin_ult1, ind_deco_fin_ult1, ind_deme_fin_ult1, ind_dela_fin_ult1, ind_ecue_fin_ult1, ind_fond_fin_ult1, ind_hip_fin_ult1, ind_plan_fin_ult1, ind_pres_fin_ult1, ind_reca_fin_ult1, ind_tjcr_fin_ult1, ind_valo_fin_ult1, ind_viv_fin_ult1, ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1 
+data Responses =
+  Responses {ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1,
+             ind_cder_fin_ult1, ind_cno_fin_ult1, ind_ctju_fin_ult1,
+             ind_ctma_fin_ult1, ind_ctop_fin_ult1, ind_ctpp_fin_ult1,
+             ind_deco_fin_ult1, ind_deme_fin_ult1, ind_dela_fin_ult1,
+             ind_ecue_fin_ult1, ind_fond_fin_ult1, ind_hip_fin_ult1,
+             ind_plan_fin_ult1, ind_pres_fin_ult1, ind_reca_fin_ult1,
+             ind_tjcr_fin_ult1, ind_valo_fin_ult1, ind_viv_fin_ult1,
+             ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Bool} deriving (Eq, Show)
+
+parseResponses :: Parser B.ByteString Responses
+parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBool
+
+parseBool = (char8 '1' >> return True) <|>
+            (char8 '0' >> return False)
+parseBEntry = parseBool <* comma
+
+
 
 comma :: PB.Parser Word8
 comma = char8 ','
