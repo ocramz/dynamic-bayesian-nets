@@ -7,6 +7,7 @@ import Text.Printf (printf)
 
 import Parser.Attoparsec
 import Data.Attoparsec.Char8
+import qualified Data.Attoparsec.ByteString as PB
 
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
@@ -15,10 +16,27 @@ import qualified Data.Vector as V
 
 main = do
   csv <- B.readFile "test-data/train-part-noheader.csv"
-  case parseOnly parseData csv of
+  case parseOnly parserTemp csv of
     Left e -> putStrLn e
-    Right v -> V.forM_ v $ \ c -> print c
+    -- Right v -> V.forM_ v $ \ c -> print c
+    Right t -> print t
 
+
+
+parserTemp = do
+  fd <- parseDate <* comma
+  ncod <- decimal <* comma
+  ind_empl <- parseEmployeeStatus <* comma
+  pais' <- parseCountry <* comma
+  sexo' <- parseGender <* comma
+  age <- decimal <* comma
+  fecha_alta' <- parseDate <* comma
+  ind_nuevo' <- parseIndNuevo <* comma
+  antiguedad' <- decimal <* comma
+  -- indrel' <- parseIndRel <* comma
+  -- ult_fec_cli_1t' <- PB.option 0 (decimal <* comma)
+  -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
+  return ind_nuevo'
 
 -- data T0 = T0 {prova0 :: !Int, prova1 :: !String} deriving (Eq, Show, Generic)
 -- instance FromNamedRecord T0 where

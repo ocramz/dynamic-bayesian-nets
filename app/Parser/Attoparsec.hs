@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Parser.Attoparsec (parseData, Customer) where
+module Parser.Attoparsec where
 
 import Data.Word
 import Data.Attoparsec.Internal.Types (Parser)
@@ -13,11 +13,6 @@ import Control.Applicative ((<|>))
 
 import Data.Time
 
-
-
--- 2016-06-28,15889,F,ES,V,56,1995-01-16,0,256,1,,1,A,S,N,N,KAT,N,1,28,"MADRID",1,326124.9,01 - TOP
--- 2016-06-28,1170544,N,ES,H,36,2013-08-28,0,34,1,,1,I,S,N,,KAT,N,1,3,"ALICANTE",0,,02 - PARTICULARES
--- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
 
 parseData :: Parser B.ByteString (V.Vector Customer)
 parseData = do
@@ -33,6 +28,10 @@ parseCustomer = do
 data Customer = Customer CustomerData Responses deriving (Eq, Show)
 
 
+-- 2016-06-28,15889,F,ES,V,56,1995-01-16,0,256,1, ,1,A,S,N,N,KAT,N,1,28,"MADRID",1,326124.9,01 - TOP
+-- 2016-06-28,1170544,N,ES,H,36,2013-08-28,0,34,1, ,1,I,S,N, ,KAT,N,1,3,"ALICANTE",0,,02 - PARTICULARES
+-- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
+
 data CustomerData =
   CustomerData {fecha_dato :: Day,
                 ncodpers :: Int,
@@ -40,16 +39,16 @@ data CustomerData =
                 pais :: Country,
                 sexo :: Gender,
                 age :: Int,
-                fecha_alta :: Day,
+                fecha_alta :: Day,   -- date
                 ind_nuevo :: Bool,
-                antiguedad :: Int,
+                antiguedad :: Int,   
                 indrel :: Bool,
-                ult_fec_cli_1t :: Int,
+                ult_fec_cli_1t :: Int, -- can be empty
                 indrel_1mes :: IndRel1Mes,
                 tiprel_1mes :: TipRel1Mes,
                 indresi :: Bool,
                 indext :: Bool,
-                conyuemp :: Bool,
+                conyuemp :: Bool,        -- can be empty
                 canalentrada :: CanalEntrada,
                 deceased :: Bool,
                 tipodom :: Bool,
@@ -72,12 +71,12 @@ parseCustomerData = do
   ind_nuevo' <- parseIndNuevo <* comma
   antiguedad' <- decimal <* comma
   indrel' <- parseIndRel <* comma
-  ult_fec_cli_1t' <- decimal <* comma
+  ult_fec_cli_1t' <- PB.option 0 (decimal <* comma)
   indrel_1mes' <- parseIndRel1Mes <* comma
   tiprel_1mes' <- parseTipRel1Mes <* comma 
   indresi' <- parseBooleanES <* comma
   indext' <- parseBooleanES <* comma
-  conyuemp' <- parseConyuEmp <* comma
+  conyuemp' <- PB.option False (parseConyuEmp <* comma)
   canalentrada' <- parseCanalEntrada <* comma
   deceased' <- parseBooleanES <* comma
   tipodom' <- (char '1' >> return True ) <* comma
