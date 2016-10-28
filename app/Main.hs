@@ -1,4 +1,3 @@
-{-# language OverloadedStrings, DeriveGeneric #-}
 module Main where
 
 import Lib 
@@ -6,83 +5,26 @@ import Lib
 import Text.Printf (printf)
 
 
-import Control.Applicative
-import qualified Data.ByteString.Lazy as BL
-import Data.Csv
-import qualified Data.Vector as V
-
-import GHC.Generics
+import Parser.Attoparsec
 
 
 
 
--- 2016-06-28,15889,F,ES,V,56,1995-01-16,0,256,1,,1,A,S,N,N,KAT,N,1,28,"MADRID",1,326124.9,01 - TOP
--- 2016-06-28,1170544,N,ES,H,36,2013-08-28,0,34,1,,1,I,S,N,,KAT,N,1,3,"ALICANTE",0,,02 - PARTICULARES
--- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
+main = print "hi"
 
 
-data Customer0 =
-  Customer0 { fecha_dato :: !String,
-              ncodpers :: !Int,
-              ind_empleado :: !Char,
-              pais_residencia :: !String,
-              sexo :: !Char,
-              age :: !Int,
-              fecha_alta :: !String,  --date
-              ind_nuevo :: !Int,
-              antiguedad :: !Int,
-              indrel :: !Int,
-              ult_fec_cli_1t :: !String,
-              indrel_1mes :: !Int,
-              tiprel_1mes :: !Char,
-              indresi :: !Char,
-              indext :: !Char,
-              conyeump :: !Int,
-              canal_entrada :: !String,
-              indfall :: !Char,
-              tipodom :: !Int,
-              cod_prov :: !Int,
-              nomprov :: !String,
-              ind_actividad_cliente :: !Int,
-              renta :: !Double,
-              segmento :: !String } deriving (Eq, Show, Generic)
+-- data T0 = T0 {prova0 :: !Int, prova1 :: !String} deriving (Eq, Show, Generic)
+-- instance FromNamedRecord T0 where
+--   parseNamedRecord r = T0 <$> r .: "prova0" <*> r .: "prova1"
 
 
-
-instance FromNamedRecord Customer0 where
-  parseNamedRecord r = Customer0 <$> r .: "fecha_dato"
-                                 <*> r .: "ncodpers"
-                                 <*> r .: "ind_empleado" 
-                                 <*> r .: "pais_residencia"
-                                 <*> r .: "sexo"
-                                 <*> r .: "age"
-                                 <*> r .: "fecha_alta"
-                                 <*> r .: "ind_nuevo"
-                                 <*> r .: "antiguedad"
-                                 <*> r .: "indrel"
-                                 <*> r .: "ult_fec_cli_1t"
-                                 <*> r .: "indrel_1mes"
-                                 <*> r .: "tiprel_1mes"
-                                 <*> r .: "indresi"
-                                 <*> r .: "indext"
-                                 <*> r .: "conyeump"
-                                 <*> r .: "canal_entrada"
-                                 <*> r .: "indfall"
-                                 <*> r .: "tipodom"
-                                 <*> r .: "cod_prov"
-                                 <*> r .: "nomprov"
-                                 <*> r .: "ind_actividad_cliente"
-                                 <*> r .: "renta"
-                                 <*> r .: "segmento"
-
-main :: IO ()
-main = do
-    csvData <- BL.readFile "test-data/testdata500.csv"
-    case decodeByName csvData of
-        Left err -> putStrLn err
-        Right (_, v) -> V.forM_ v $ \c ->
-            putStrLn $ show (fecha_dato c)
-
+-- main :: IO ()
+-- main = do
+--     csvData <- BL.readFile "test-data/testcsv.csv"
+--     case decodeByName csvData of
+--         Left err -> putStrLn err
+--         Right (_, v) -> V.forM_ v $ \c ->
+--             putStrLn $ unwords [show (prova0 c), show (prova1 c)]
 
 {- | COVARIATES
 fecha_dato	The table is partitioned for this column
