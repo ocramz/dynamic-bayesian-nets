@@ -4,7 +4,7 @@ module Parser.Attoparsec where
 import Data.Word
 import Data.Attoparsec.Internal.Types (Parser)
 import qualified Data.Attoparsec.ByteString as PB
-import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rational, char, char8, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace)
+import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rational, char, char8, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace, space)
 
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
@@ -43,7 +43,7 @@ data CustomerData =
                 ind_nuevo :: Bool,
                 antiguedad :: Int,   
                 indrel :: Bool,
-                ult_fec_cli_1t :: Int,     -- can be empty
+                ult_fec_cli_1t :: Maybe Int,     -- can be empty
                 indrel_1mes :: IndRel1Mes,
                 tiprel_1mes :: Maybe TipRel1Mes,
                 indresi :: Maybe Bool,
@@ -76,7 +76,7 @@ parseCustomerData = do
   newcustomer <- parseBit <* comma
   acct_age <- decimal <* comma
   ir <- parseIndRel <* comma
-  ufc1t <- PB.option 0 (decimal <* comma)
+  ufc1t <- parserMaybe (decimal <* comma) -- PB.option 0 (decimal <* comma)
   ir_1m <- parseIndRel1Mes <* comma
   tr_1m <- parserMaybe $ parseTipRel1Mes <* comma         -- FIXME
   ind_resi <- parserMaybe $ parseBooleanES <* comma
@@ -91,6 +91,8 @@ parseCustomerData = do
   salary <- parserMaybe $ double <* comma
   segm <- parserMaybe $ parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
+
+
 
 data Responses =
   Responses {ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1,
@@ -133,7 +135,7 @@ parseEmployeeStatus = (char8 'A' >> return Active) <|>
                       (char8 'F' >> return Filial) <|>
                       (char8 'N' >> return NotEmployee) <|>
                       (char8 'P' >> return Passive) <|>
-                      (char8 ' ' >> return EmployeeStatus_NA)
+                      (PB.many' space >> return EmployeeStatus_NA)
 
 data Gender = Male | Female deriving (Eq, Show)
 parseGender :: Parser B.ByteString Gender
@@ -155,7 +157,7 @@ parseIndRel1Mes = (char8 '1' >> return Primary) <|>
                   (char8 'P' >> return Potential) <|>
                   (char8 '3' >> return FormerPrimary) <|>
                   (char8 '4' >> return FormerCoOwner) <|>
-                  (char8 ' ' >> return IndRel1Mes_NA)
+                  (PB.many' space >> return IndRel1Mes_NA)
 
 -- tiprel_1mes	Customer relation type at the beginning of the month, A (active), I (inactive), P (former customer),R (Potential)
 data TipRel1Mes = TRActive | TRInactive | TRFormerCustomer | TRPotential | TR_NA deriving (Eq, Show)
@@ -163,7 +165,7 @@ parseTipRel1Mes = (char8 'A' >> return TRActive) <|>
                   (char8 'I' >> return TRInactive) <|>
                   (char8 'P' >> return TRFormerCustomer) <|>
                   (char8 'R' >> return TRPotential) <|>
-                  (char8 ' ' >> return TR_NA)
+                  (PB.many' space >> return TR_NA)
 
 -- indresi	Residence index (S (Yes) or N (No) if the residence country is the same than the bank country)
 -- indext	Foreigner index (S (Yes) or N (No) if the customer's birth country is different than the bank country)
