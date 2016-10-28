@@ -9,7 +9,7 @@ import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rationa
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
 
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), Alternative)
 
 import Data.Time
 
@@ -59,8 +59,9 @@ data CustomerData =
                 segment :: Maybe Segment
                 } deriving (Eq, Show)
 
-
-parserMaybe p = PB.option Nothing $ (Just <$> p)--  <* comma
+-- | useful device
+parserMaybe :: Alternative f => f a -> f (Maybe a)
+parserMaybe p = PB.option Nothing (Just <$> p)
 
 
 parseCustomerData :: Parser B.ByteString CustomerData

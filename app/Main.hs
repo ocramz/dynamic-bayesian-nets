@@ -26,14 +26,14 @@ import Control.Applicative
 
 main = do
   let (feats, resps) = preprocessRow testStr
-      pf = PB.parseOnly parseCustomerData feats
-      pr = PB.parseOnly parseResponses resps
-  case pf of
+      f = PB.parseOnly parseCustomerData feats
+      r = PB.parseOnly parseResponses resps
+  case f of
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
     where
-      testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+      testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N,0,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 
 
 
