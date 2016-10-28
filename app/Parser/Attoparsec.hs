@@ -51,9 +51,26 @@ data CustomerData =
                 sexo :: Gender,
                 age :: Int,
                 fecha_alta :: Day,
-                ind_nuevo :: Bool
+                ind_nuevo :: Bool,
+                antiguedad :: Int,
+                indrel :: Bool,
+                ult_fec_cli_1t :: Int,
+                indrel_1mes :: IndRel1Mes,
+                tiprel_1mes :: TipRel1Mes,
+                indresi :: Bool,
+                indext :: Bool,
+                conyuemp :: Bool,
+                canalentrada :: CanalEntrada,
+                deceased :: Bool,
+                tipodom :: Bool,
+                codprov :: Int,
+                nomprov :: Province,
+                ind_actividad :: Bool,
+                renta :: Double,
+                segment :: Segment
                 }
 
+parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
   fecha_dato <- parseDate
   comma
@@ -99,11 +116,11 @@ parseCustomerData = do
   comma
   ind_actividad <- char '1' >> return True
   comma
-  renta <- scientific
+  renta <- rational
   comma
   segment <- parseSegment
   comma
-  return $ CustomerData fecha_dato ncodpers ind_empleado pais sexo age fecha_alta ind_nuevo
+  return $ CustomerData fecha_dato ncodpers ind_empleado pais sexo age fecha_alta ind_nuevo antiguedad indrel ult_fec_cli_1t indrel_1mes tiprel_1mes indresi indext conyuemp canalentrada deceased tipodom codprov nomProv ind_actividad renta segment
 
 -- responses
 -- ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1, ind_cder_fin_ult1, ind_cno_fin_ult1, ind_ctju_fin_ult1, ind_ctma_fin_ult1, ind_ctop_fin_ult1, ind_ctpp_fin_ult1, ind_deco_fin_ult1, ind_deme_fin_ult1, ind_dela_fin_ult1, ind_ecue_fin_ult1, ind_fond_fin_ult1, ind_hip_fin_ult1, ind_plan_fin_ult1, ind_pres_fin_ult1, ind_reca_fin_ult1, ind_tjcr_fin_ult1, ind_valo_fin_ult1, ind_viv_fin_ult1, ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1 
