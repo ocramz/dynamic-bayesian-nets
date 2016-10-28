@@ -45,18 +45,18 @@ data CustomerData =
                 indrel :: Bool,
                 ult_fec_cli_1t :: Int,     -- can be empty
                 indrel_1mes :: IndRel1Mes,
-                tiprel_1mes :: TipRel1Mes,
-                indresi :: Bool,
-                indext :: Bool,
-                conyuemp :: Bool,        -- can be empty
-                canalentrada :: CanalEntrada,
-                deceased :: Bool,
-                tipodom :: Bool,
-                codprov :: Int,
-                nomprov :: Province,
-                ind_actividad :: Bool,
-                renta :: Double,
-                segment :: Segment
+                tiprel_1mes :: Maybe TipRel1Mes,
+                indresi :: Maybe Bool,
+                indext :: Maybe Bool,
+                conyuemp :: Maybe Bool,        -- can be empty
+                canalentrada :: Maybe CanalEntrada,
+                deceased :: Maybe Bool,
+                tipodom :: Maybe Bool,
+                codprov :: Maybe Int,
+                nomprov :: Maybe Province,
+                ind_actividad :: Maybe Bool,
+                renta :: Maybe Double,
+                segment :: Maybe Segment
                 } deriving (Eq, Show)
 
 
@@ -77,18 +77,18 @@ parseCustomerData = do
   ir <- parseIndRel <* comma
   ufc1t <- PB.option 0 (decimal <* comma)
   ir_1m <- parseIndRel1Mes <* comma
-  tr_1m <- parseTipRel1Mes <* comma         -- FIXME
-  ind_resi <- parseBooleanES <* comma
-  ind_ext <- parseBooleanES <* comma
-  conyu_emp <- PB.option False (parseBit <* comma)
-  canale <- parseCanalEntrada <* comma
-  dead <- parseBooleanES <* comma
-  tipo_dom <- parseBit <* comma
-  cod_prov <- decimal <* comma
-  nom_prov <- parseProvince <* comma
-  ind_activ <- parseBit <* comma
-  salary <- double <* comma
-  segm <- parseSegment <* comma
+  tr_1m <- parserMaybe $ parseTipRel1Mes <* comma         -- FIXME
+  ind_resi <- parserMaybe $ parseBooleanES <* comma
+  ind_ext <- parserMaybe $ parseBooleanES <* comma
+  conyu_emp <- parserMaybe $ PB.option False (parseBit <* comma)
+  canale <- parserMaybe $ parseCanalEntrada <* comma
+  dead <- parserMaybe $ parseBooleanES <* comma
+  tipo_dom <- parserMaybe $ parseBit <* comma
+  cod_prov <- parserMaybe $ decimal <* comma
+  nom_prov <- parserMaybe $ parseProvince <* comma
+  ind_activ <- parserMaybe $ parseBit <* comma
+  salary <- parserMaybe $ double <* comma
+  segm <- parserMaybe $ parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
 data Responses =
