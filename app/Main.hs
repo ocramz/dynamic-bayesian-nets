@@ -6,11 +6,18 @@ import Text.Printf (printf)
 
 
 import Parser.Attoparsec
+import Data.Attoparsec.Char8
+
+import qualified Data.ByteString as B
+import qualified Data.Vector as V
 
 
 
-
-main = print "hi"
+main = do
+  csv <- B.readFile "test-data/train-part-noheader.csv"
+  case parseOnly parseData csv of
+    Left e -> putStrLn e
+    Right v -> V.forM_ v $ \ c -> print c
 
 
 -- data T0 = T0 {prova0 :: !Int, prova1 :: !String} deriving (Eq, Show, Generic)

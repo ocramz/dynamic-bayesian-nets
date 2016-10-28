@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Parser.Attoparsec where
+module Parser.Attoparsec (parseData, Customer) where
 
 import Data.Word
 import Data.Attoparsec.Internal.Types (Parser)
@@ -7,6 +7,7 @@ import qualified Data.Attoparsec.ByteString as PB
 import Data.Attoparsec.ByteString.Char8 (decimal, signed, scientific, digit, rational, char, char8, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace)
 
 import qualified Data.ByteString as B
+import qualified Data.Vector as V
 
 import Control.Applicative ((<|>))
 
@@ -18,12 +19,18 @@ import Data.Time
 -- 2016-06-28,1170544,N,ES,H,36,2013-08-28,0,34,1,,1,I,S,N,,KAT,N,1,3,"ALICANTE",0,,02 - PARTICULARES
 -- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
 
+parseData :: Parser B.ByteString (V.Vector Customer)
+parseData = do
+  dd <- PB.many1 parseCustomer <* endOfInput
+  return $ V.fromList dd
+
+parseCustomer :: Parser B.ByteString Customer
 parseCustomer = do
   cd <- parseCustomerData
   cr <- parseResponses <* endOfLine
   return $ Customer cd cr
 
-data Customer = Customer CustomerData Responses
+data Customer = Customer CustomerData Responses deriving (Eq, Show)
 
 
 data CustomerData =
@@ -55,31 +62,31 @@ data CustomerData =
 
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
-  fecha_dato <- parseDate <* comma
-  ncodpers <- decimal <* comma
-  ind_empleado <- parseEmployeeStatus <* comma
-  pais <- parseCountry <* comma
-  sexo <- parseGender <* comma
-  age <- decimal <* comma
-  fecha_alta <- parseDate <* comma
-  ind_nuevo <- parseIndNuevo <* comma
-  antiguedad <- decimal <* comma
-  indrel <- parseIndRel <* comma
-  ult_fec_cli_1t <- decimal <* comma
-  indrel_1mes <- parseIndRel1Mes <* comma
-  tiprel_1mes <- parseTipRel1Mes <* comma 
-  indresi <- parseBooleanES <* comma
-  indext <- parseBooleanES <* comma
-  conyuemp <- parseConyuEmp <* comma
-  canalentrada <- parseCanalEntrada <* comma
-  deceased <- parseBooleanES <* comma
-  tipodom <- (char '1' >> return True ) <* comma
-  codprov <- decimal <* comma
-  nomProv <- parseProvince <* comma
-  ind_actividad <- (char '1' >> return True) <* comma
-  renta <- rational <* comma
-  segment <- parseSegment <* comma
-  return $ CustomerData fecha_dato ncodpers ind_empleado pais sexo age fecha_alta ind_nuevo antiguedad indrel ult_fec_cli_1t indrel_1mes tiprel_1mes indresi indext conyuemp canalentrada deceased tipodom codprov nomProv ind_actividad renta segment
+  fd <- parseDate <* comma
+  ncod <- decimal <* comma
+  ind_empl <- parseEmployeeStatus <* comma
+  pais' <- parseCountry <* comma
+  sexo' <- parseGender <* comma
+  age' <- decimal <* comma
+  fecha_alta' <- parseDate <* comma
+  ind_nuevo' <- parseIndNuevo <* comma
+  antiguedad' <- decimal <* comma
+  indrel' <- parseIndRel <* comma
+  ult_fec_cli_1t' <- decimal <* comma
+  indrel_1mes' <- parseIndRel1Mes <* comma
+  tiprel_1mes' <- parseTipRel1Mes <* comma 
+  indresi' <- parseBooleanES <* comma
+  indext' <- parseBooleanES <* comma
+  conyuemp' <- parseConyuEmp <* comma
+  canalentrada' <- parseCanalEntrada <* comma
+  deceased' <- parseBooleanES <* comma
+  tipodom' <- (char '1' >> return True ) <* comma
+  codprov' <- decimal <* comma
+  nomProv' <- parseProvince <* comma
+  ind_actividad' <- (char '1' >> return True) <* comma
+  renta' <- rational <* comma
+  segment' <- parseSegment <* comma
+  return $ CustomerData fd ncod ind_empl pais' sexo' age' fecha_alta' ind_nuevo' antiguedad' indrel' ult_fec_cli_1t' indrel_1mes' tiprel_1mes' indresi' indext' conyuemp' canalentrada' deceased' tipodom' codprov' nomProv' ind_actividad' renta' segment'
 
 data Responses =
   Responses {ind_ahor_fin_ult1, ind_aval_fin_ult1, ind_cco_fin_ult1,
@@ -94,8 +101,10 @@ data Responses =
 parseResponses :: Parser B.ByteString Responses
 parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBool
 
+parseBool :: Parser B.ByteString Bool
 parseBool = (char8 '1' >> return True) <|>
             (char8 '0' >> return False)
+parseBEntry :: Parser B.ByteString Bool            
 parseBEntry = parseBool <* comma
 
 
@@ -114,6 +123,7 @@ parseDate = do
 
 -- ind_empleado	Employee index: A active, B ex employed, F filial, N not employee, P pasive
 data EmployeeStatus = Active | ExEmployee | Filial | NotEmployee | Passive deriving (Eq, Show)
+parseEmployeeStatus :: Parser B.ByteString EmployeeStatus
 parseEmployeeStatus = (char8 'A' >> return Active) <|>
                       (char8 'B' >> return ExEmployee) <|>
                       (char8 'F' >> return Filial) <|>
@@ -121,17 +131,21 @@ parseEmployeeStatus = (char8 'A' >> return Active) <|>
                       (char8 'P' >> return Passive)
 
 data Gender = M | F deriving (Eq, Show)
+parseGender :: Parser B.ByteString Gender
 parseGender = (char8 'H' >> return M) <|> (char8 'V' >> return F)
 
+parseIndNuevo :: Parser B.ByteString Bool
 parseIndNuevo = char8 '1' >> return True
 
 
 -- indrel	1 (First/Primary), 99 (Primary customer during the month but not at the end of the month)
+parseIndRel :: Parser B.ByteString Bool
 parseIndRel = (PB.string "1" >> return True) <|>
               (PB.string "99" >> return False)
 
 -- indrel_1mes	Customer type at the beginning of the month ,1 (First/Primary customer), 2 (co-owner ),P (Potential),3 (former primary), 4(former co-owner)
 data IndRel1Mes = Primary | CoOwner | Potential | FormerPrimary | FormerCoOwner deriving (Eq, Show)
+parseIndRel1Mes :: Parser B.ByteString IndRel1Mes
 parseIndRel1Mes = (char8 '1' >> return Primary) <|>
                  (char8 '2' >> return CoOwner) <|>
                  (char8 'P' >> return Potential) <|>
@@ -148,12 +162,15 @@ parseTipRel1Mes = (char8 'A' >> return TRActive) <|>
 -- indresi	Residence index (S (Yes) or N (No) if the residence country is the same than the bank country)
 -- indext	Foreigner index (S (Yes) or N (No) if the customer's birth country is different than the bank country)
 -- conyuemp	Spouse index. 1 if the customer is spouse of an employee
+parseBooleanES :: Parser B.ByteString Bool
 parseBooleanES = (char8 'S' >> return True) <|>
                  (char8 'N' >> return False)
 
+parseConyuEmp :: Parser B.ByteString Bool
 parseConyuEmp = char8 '1' >> return True                 
 
 data CanalEntrada = KHE | KAT deriving (Eq, Show)
+parseCanalEntrada :: Parser B.ByteString CanalEntrada
 parseCanalEntrada = (PB.string "KHE" >> return KHE) <|>
                     (PB.string "KAT" >> return KAT)
   
@@ -162,6 +179,7 @@ data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid
               | Lerida | Jaen | Burgos | Malaga | Sevilla | CiudadReal | Cuenca
               | IllesBalears | Zaragoza | Castellon | Valencia | Salamanca | Huesca
               | Badajoz | Navarra | Leon | Palencia | Ourense | Rioja deriving (Eq, Show)
+parseProvince :: Parser B.ByteString Province                
 parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "MADRID" >> return Madrid) <|>
             (PB.string "CORUÃ‘A, A" >> return Coruna) <|>
@@ -196,10 +214,12 @@ parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
 
 
 data Country = ES deriving (Eq, Show)
+parseCountry :: Parser B.ByteString Country
 parseCountry = PB.string "ES" >> return ES
 
 data Segment = Universitario | Particulares | Top deriving (Eq, Show)
 
+parseSegment :: Parser B.ByteString Segment
 parseSegment = (PB.string "02 - PARTICULARES" >> return Particulares) <|>
             (PB.string "03 - UNIVERSITARIO" >> return Universitario) <|>
             (PB.string "01 - TOP" >> return Top)
