@@ -7,14 +7,15 @@ import Lib
 
 import Parser.Attoparsec
 
+import Data.Maybe
 
 import Data.Attoparsec.ByteString.Char8  hiding (ByteString, take)
 import qualified Data.Attoparsec.ByteString as PB hiding (skip,skipWhile,take)
 
 -- import qualified Data.List as List
 -- import qualified Data.ByteString.Lazy as B hiding (split, pack)
-import qualified Data.ByteString.Lazy.Char8 as BL8 -- hiding (ByteString)-- (split, pack)
-import Data.ByteString hiding (take, drop, putStrLn)
+import qualified Data.ByteString.Lazy.Char8 as BL8 -- hiding (readFile)-- (split, pack)
+import qualified Data.ByteString as B hiding (take, drop, putStrLn)
 import qualified Data.Vector as V
 
 import Control.Applicative
@@ -22,22 +23,52 @@ import Control.Applicative
 
 -- main = putStrLn "hi"
 
--- main = do
---   csv <- B.readFile "test-data/train-part-noheader.csv"
---   parseLogic csv
+
+data0 = BL8.toStrict "2015-01-28,1050612,N,ES,V,23,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,13,CIUDAD REAL,0,122179.11,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050615,N,ES,H,23,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,45,TOLEDO,0,22220.04,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050624,N,ES,H,65,2012-08-10,0,35,1, ,1,A,S,N, ,KHE,N,1,50,ZARAGOZA,1,61605.09,02 - PARTICULARES,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050610,N,ES,V,24,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,37,SALAMANCA,1,68318.46,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050627,N,ES,H,23,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,13,CIUDAD REAL,0,65608.35,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050609,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KFA,N,1,13,CIUDAD REAL,1,73432.47,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050582,N,ES,V,28,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,13,CIUDAD REAL,1,64620.57,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050586,N,ES,V,23,2012-08-10,0,35,1, ,1,A,S,N, ,KHE,N,1,13,CIUDAD REAL,1,64194.99,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1\n2015-01-28,1050589,N,ES,V,23,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,22,HUESCA,0,119173.89,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050591,N,ES,H,23,2012-08-10,0,35,1, ,1,A,S,N, ,KHE,N,1,13,CIUDAD REAL,1,58728.39,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n2015-01-28,1050595,N,ES,V,25,2012-08-10,0,35,1, ,1,A,S,N, ,KHE,N,1,5,AVILA,1,86863.38,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
+
+data1 = BL8.toStrict "2015-01-28,1050553,N,ES,H,24,2012-08-10,0,35,1, ,1,A,S,N, ,KHE,N,1,15,CORUÑA, A,1, ,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1\n2015-01-28,1050529,N,ES,H,24,2012-08-10,0,35,1, ,1,I,S,N, ,KHE,N,1,13,CIUDAD REAL,0,36372,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
+
 
 main = do
-  let row = s5 -- (B.pack testStr)
-      -- f = PB.parseOnly parseCustomerData feats
-      res = PB.parseOnly parseCustomer row -- resps
+  csv <- B.readFile "test-data/train-part-noheader.csv"
+  case PB.parseOnly parseData csv of
+    Left e -> putStrLn e
+    Right v -> print (V.length v)-- V.forM_ v $ \customer -> 
+      -- putStrLn $ show $ fprocess customer
+
+
+-- try out a parser and print the result to stdout
+test :: B.ByteString -> IO ()
+test = parseTest parseData
+
+-- filters a vector using a projecting function 
+-- filterJust :: (a -> Maybe a1) -> V.Vector a -> V.Vector a
+filterJust f = V.filter (isJust . f)
+
+-- printData :: Show a => B.ByteString -> IO ()
+printData :: Show a => (Customer -> Maybe a) -> B.ByteString -> IO ()
+printData f rd = do
+  let res = PB.parseOnly parseData rd
   case res of
     Left e -> putStrLn e
-    -- Right v -> V.forM_ v $ \ c -> print c
-    Right t -> print t
+    Right v -> do
+      let vf = filterJust f v
+      V.mapM_ (print . fromJust . f) vf
+
+-- main = do
+--   let row = s5 -- (B.pack testStr)
+--       -- f = PB.parseOnly parseCustomerData feats
+--       res = PB.parseOnly parseCustomer row -- resps
+--   case res of
+--     Left e -> putStrLn e
+--     -- Right v -> V.forM_ v $ \ c -> print c
+--     Right t -> print t
+
+-- data row example : 
+-- "2015-01-28",1375586,"N","ES","H",35,"2015-01-12",0,6,1,"",1,"A","S","N","","KHL","N",1,29,"MALAGA",1,87218.1,"02 - PARTICULARES",0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 s0 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
 s1 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
--- s2 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,"
 
 s3 = BL8.toStrict "2015-01-28,1030918,N,ES,V,22,2012-07-25,0,36,1, ,1,I,S,N, ,KHE,N,1,15,CORUÑA, A,1, ,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
 
@@ -48,19 +79,19 @@ s5 = BL8.toStrict "2015-01-28,1030835, , , , , , , , , , , , , , , , , , , , , ,
 
 s6 = BL8.toStrict "2015-01-28,1031396,N,ES,V,32,2012-07-25,0,36,1, ,1.0,I,S,S, ,KFC,N,1,28,MADRID,0,97886.4,02 - PARTICULARES,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
 
--- try out a parser and print the result to stdout
-test :: ByteString -> IO ()
-test = parseTest parseCustomer
 
--- split a data row in inputs and responses (NB: takes a lazy bytestring and returns two strict bytestrings)
-preprocessRow :: BL8.ByteString -> (ByteString, ByteString)
-preprocessRow r = (x_, y_)
-  where
-    n = 24
-    rc = BL8.split ',' r
-    x_ = intercf $ take n rc
-    y_ = intercf $ drop n rc
-    intercf = BL8.toStrict . BL8.intercalate (BL8.pack ",")
+
+
+
+-- -- split a data row in inputs and responses (NB: takes a lazy bytestring and returns two strict bytestrings)
+-- preprocessRow :: BL8.ByteString -> (B.ByteString, B.ByteString)
+-- preprocessRow r = (x_, y_)
+--   where
+--     n = 24
+--     rc = BL8.split ',' r
+--     x_ = intercf $ take n rc
+--     y_ = intercf $ drop n rc
+--     intercf = BL8.toStrict . BL8.intercalate (BL8.pack ",")
 
 
 

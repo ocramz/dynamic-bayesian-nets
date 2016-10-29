@@ -9,23 +9,33 @@ import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rationa
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
 
-import Control.Applicative ((<|>), Alternative)
+import Control.Applicative ((<|>), Alternative, many)
 
+import Data.Maybe (isJust, isNothing)
 import Data.Time
 
 
-parseData :: Parser B.ByteString (V.Vector Customer)
-parseData = do
-  dd <- PB.many1 parseCustomer <* endOfInput
-  return $ V.fromList dd
 
+-- parse the whole dataset
+parseData :: Parser B.ByteString (V.Vector Customer)
+parseData = V.fromList <$> many parseCustomer
+
+
+
+-- parse a single customer
 parseCustomer :: Parser B.ByteString Customer
 parseCustomer = do
   cd <- parseCustomerData
   cr <- parseResponses <* endOfLine
   return $ Customer cd cr
 
-data Customer = Customer CustomerData Responses deriving (Eq, Show)
+data Customer = Customer { custData :: CustomerData,
+                           custResp :: Responses} deriving (Eq, Show)
+
+projectCustomer :: (CustomerData -> Responses -> a) -> Customer -> a
+projectCustomer f cu = f (custData cu) (custResp cu)
+
+asdf = projectCustomer (\c _ -> isJust (age c))
 
 
 -- 2016-06-28,15889,F,ES,V,56,1995-01-16,0,256,1, ,1,A,S,N,N,KAT,N,1,28,"MADRID",1,326124.9,01 - TOP
@@ -33,30 +43,30 @@ data Customer = Customer CustomerData Responses deriving (Eq, Show)
 -- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
 
 data CustomerData =
-  CustomerData {fecha_dato :: Maybe Day,
-                ncodpers :: Maybe Int,
-                ind_empleado :: Maybe EmployeeStatus,
-                pais :: Maybe Country,
-                sexo :: Maybe Gender,
-                age :: Maybe Int,
+  CustomerData {fecha_dato :: Maybe Day,         -- date of record
+                ncodpers :: Maybe Int,           -- customer code
+                ind_empleado :: Maybe EmployeeStatus, -- employee status
+                pais :: Maybe Country,           -- country
+                sexo :: Maybe Gender,            -- gender
+                age :: Maybe Int,                -- age
                 fecha_alta :: Maybe Day,         -- date
-                ind_nuevo :: Maybe Bool,
-                antiguedad :: Maybe Int,   
-                indrel :: Maybe Bool,
-                ult_fec_cli_1t :: Maybe Day,     -- can be empty
-                indrel_1mes :: Maybe IndRel1Mes,
-                tiprel_1mes :: Maybe TipRel1Mes,
-                indresi :: Maybe Bool,
-                indext :: Maybe Bool,
-                conyuemp :: Maybe Bool,          -- can be empty
-                canalentrada :: Maybe CanalEntrada,
-                deceased :: Maybe Bool,
-                tipodom :: Maybe Bool,
-                codprov :: Maybe Int,
-                nomprov :: Maybe Province,
-                ind_actividad :: Maybe Bool,
-                renta :: Maybe Double,
-                segment :: Maybe Segment
+                ind_nuevo :: Maybe Bool,         -- 1 if new customer in last 6 months
+                antiguedad :: Maybe Int,         -- customer seniority (months)
+                indrel :: Maybe Bool,            -- primary customer?
+                ult_fec_cli_1t :: Maybe Day,     -- last date as primary customer
+                indrel_1mes :: Maybe IndRel1Mes, -- customer type at month start
+                tiprel_1mes :: Maybe TipRel1Mes, -- " relation " " "
+                indresi :: Maybe Bool,           -- is residence country same as bank?
+                indext :: Maybe Bool,            -- " " foreigner?
+                conyuemp :: Maybe Bool,          -- " " spouse of an employee?
+                canalentrada :: Maybe CanalEntrada, -- customer signup channel
+                deceased :: Maybe Bool,          -- is customer dead?
+                tipodom :: Maybe Bool,           -- primary address ?
+                codprov :: Maybe Int,            -- province code
+                nomprov :: Maybe Province,       -- province name 
+                ind_actividad :: Maybe Bool,     -- active client ?
+                renta :: Maybe Double,           -- salary
+                segment :: Maybe Segment         -- customer type
                 } deriving (Eq, Show)
 
 -- | useful device
@@ -113,7 +123,7 @@ data Responses =
              ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Maybe Bool}
   deriving (Eq, Show)
 
--- parseResponses :: Parser B.ByteString Responses
+parseResponses :: Parser B.ByteString Responses
 parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> optionalWS parseBit where
   parseBEntry = optionalWS $ parseBit <* comma
 
@@ -198,11 +208,14 @@ data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid
               | Cantabria | Cordoba | Zamora | Pontevedra | Girona | Caceres
               | Lerida | Jaen | Burgos | Malaga | Sevilla | CiudadReal | Cuenca
               | IllesBalears | Zaragoza | Castellon | Valencia | Salamanca | Huesca
-              | Badajoz | Navarra | Leon | Palencia | Ourense | Rioja | SCTenerife deriving (Eq, Show)
+              | Badajoz | Navarra | Leon | Palencia | Ourense | Rioja | SCTenerife
+              | Toledo | Avila | Lugo | Segovia | Soria | Teruel | Bizkaia deriving (Eq, Show)
+                
 parseProvince :: Parser B.ByteString Province                
 parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "MADRID" >> return Madrid) <|>
-            (PB.string "CORUÑA, A" >> return Coruna) <|>
+            -- (PB.string "CORUÑA, A" >> return Coruna) <|>
+            (PB.string "CORU\209A, A" >> return Coruna) <|>     -- I know, I know 
             (PB.string "ALICANTE" >> return Alicante) <|>
             (PB.string "ALBACETE" >> return Albacete) <|>
             (PB.string "VALLADOLID" >> return Valladolid) <|>
@@ -231,7 +244,14 @@ parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "PALENCIA" >> return Palencia) <|>
             (PB.string "OURENSE" >> return Ourense) <|>
             (PB.string "RIOJA" >> return Rioja) <|>
-            (PB.string "SANTA CRUZ DE TENERIFE" >> return SCTenerife)
+            (PB.string "SANTA CRUZ DE TENERIFE" >> return SCTenerife) <|>
+            (PB.string "TOLEDO" >> return Toledo) <|>
+            (PB.string "AVILA" >> return Avila) <|>
+            (PB.string "LUGO" >> return Lugo) <|>
+            (PB.string "SEGOVIA" >> return Segovia) <|>
+            (PB.string "SORIA" >> return Soria) <|>
+            (PB.string "TERUEL" >> return Teruel) <|>
+            (PB.string "BIZKAIA" >> return Bizkaia)             
 
 
 data Country = ES deriving (Eq, Show)
@@ -249,8 +269,4 @@ parseSegment =
   (PB.string "03 - UNIVERSITARIO" >> return Universitario) <|>
   (PB.string "01 - TOP" >> return Top)
 
--- parseNameProv = do
---   char '\"'
---   p <- string
---   char '\"'
---   return $ NameProv p
+
