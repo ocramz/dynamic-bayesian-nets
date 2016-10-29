@@ -27,16 +27,16 @@ import Control.Applicative
 --   parseLogic csv
 
 main = do
-  let (feats, resps) = preprocessRow (BL8.fromStrict s0) -- (B.pack testStr)
-      f = PB.parseOnly parseCustomerData feats
-      r = PB.parseOnly parseResponses resps
-  case f of
+  let row = s0 -- (B.pack testStr)
+      -- f = PB.parseOnly parseCustomerData feats
+      res = PB.parseOnly parseCustomer row -- resps
+  case res of
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
 
-s0 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-s1 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+s0 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
+s1 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
 s2 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,"
 
 s3 = BL8.toStrict "2015-01-28,1030918,N,ES,V,22,2012-07-25,0,36,1, ,1,I,S,N, ,KHE,N,1,15,CORUÑA, A,1, ,03 - UNIVERSITARIO,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
