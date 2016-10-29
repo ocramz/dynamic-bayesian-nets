@@ -46,6 +46,8 @@ s4 = BL8.toStrict "2015-01-28,1031069,N,ES,V,59,2012-07-25,0,36,1, ,1.0,A,S,N, ,
 
 s5 = BL8.toStrict "2015-01-28,1030835, , , , , , , , , , , , , , , , , , , , , , ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, , ,0\n"
 
+s6 = BL8.toStrict "2015-01-28,1031396,N,ES,V,32,2012-07-25,0,36,1, ,1.0,I,S,S, ,KFC,N,1,28,MADRID,0,97886.4,02 - PARTICULARES,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
+
 -- try out a parser and print the result to stdout
 test :: ByteString -> IO ()
 test = parseTest parseCustomer
