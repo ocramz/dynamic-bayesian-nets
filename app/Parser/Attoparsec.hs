@@ -4,7 +4,7 @@ module Parser.Attoparsec where
 import Data.Word
 import Data.Attoparsec.Internal.Types (Parser)
 import qualified Data.Attoparsec.ByteString as PB
-import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rational, char, char8, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace, space)
+import Data.Attoparsec.ByteString.Char8 (decimal, signed, double, digit, rational, char, char8, space, endOfLine, endOfInput, isDigit, isDigit_w8, isEndOfLine, isHorizontalSpace, space)
 
 import qualified Data.ByteString as B
 import qualified Data.Vector as V
@@ -43,11 +43,11 @@ data CustomerData =
                 ind_nuevo :: Bool,
                 antiguedad :: Int,   
                 indrel :: Bool,
-                ult_fec_cli_1t :: Maybe Int,     -- can be empty
+                ult_fec_cli_1t :: Maybe Day,     -- can be empty
                 indrel_1mes :: IndRel1Mes,
-                tiprel_1mes :: Maybe TipRel1Mes,
-                indresi :: Maybe Bool,
-                indext :: Maybe Bool,
+                tiprel_1mes :: TipRel1Mes,
+                indresi :: Bool,
+                indext :: Bool,
                 conyuemp :: Maybe Bool,        -- can be empty
                 canalentrada :: Maybe CanalEntrada,
                 deceased :: Maybe Bool,
@@ -76,11 +76,11 @@ parseCustomerData = do
   newcustomer <- parseBit <* comma
   acct_age <- decimal <* comma
   ir <- parseIndRel <* comma
-  ufc1t <- parserMaybe (decimal <* comma) -- PB.option 0 (decimal <* comma)
-  ir_1m <- parseIndRel1Mes <* comma
-  tr_1m <- parserMaybe $ parseTipRel1Mes <* comma         -- FIXME
-  ind_resi <- parserMaybe $ parseBooleanES <* comma
-  ind_ext <- parserMaybe $ parseBooleanES <* comma
+  ufc1t <- parserMaybe (parseDate <* comma) <* comma
+  ir_1m <- parseIndRel1Mes <* comma     -- 1
+  tr_1m <- parseTipRel1Mes <* comma     -- I 
+  ind_resi <- parseBooleanES <* comma   -- S
+  ind_ext <- parseBooleanES <* comma    -- N
   conyu_emp <- parserMaybe $ PB.option False (parseBit <* comma)
   canale <- parserMaybe $ parseCanalEntrada <* comma
   dead <- parserMaybe $ parseBooleanES <* comma
@@ -92,6 +92,8 @@ parseCustomerData = do
   segm <- parserMaybe $ parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
+-- parseUfc1t = parseDate <|> space
+
 
 
 data Responses =
@@ -102,23 +104,24 @@ data Responses =
              ind_ecue_fin_ult1, ind_fond_fin_ult1, ind_hip_fin_ult1,
              ind_plan_fin_ult1, ind_pres_fin_ult1, ind_reca_fin_ult1,
              ind_tjcr_fin_ult1, ind_valo_fin_ult1, ind_viv_fin_ult1,
-             ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Bool} deriving (Eq, Show)
+             ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Bool}
+  deriving (Eq, Show)
 
 parseResponses :: Parser B.ByteString Responses
-parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBit
+parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBit where
+  parseBEntry :: Parser B.ByteString Bool            
+  parseBEntry = parseBit <* comma
+
+
 
 
 parseBit :: Parser B.ByteString Bool
 parseBit = (char8 '1' >> return True) <|> (char8 '0' >> return False)
 
-parseBEntry :: Parser B.ByteString Bool            
-parseBEntry = parseBit <* comma
-
-
-
 comma :: PB.Parser Word8
 comma = char8 ','
 
+-- | parse a date in Y-M-D format
 parseDate :: Parser B.ByteString Day
 parseDate = do
   y <- decimal
@@ -226,9 +229,13 @@ parseCountry = PB.string "ES" >> return ES
 data Segment = Universitario | Particulares | Top deriving (Eq, Show)
 
 parseSegment :: Parser B.ByteString Segment
-parseSegment = (PB.string "02 - PARTICULARES" >> return Particulares) <|>
-            (PB.string "03 - UNIVERSITARIO" >> return Universitario) <|>
-            (PB.string "01 - TOP" >> return Top)
+parseSegment =
+    (PB.string "02" >> return Particulares) <|>
+  (PB.string "03" >> return Universitario) <|>
+  (PB.string "01" >> return Top)
+  -- (PB.string "02 - PARTICULARES" >> return Particulares) <|>
+  -- (PB.string "03 - UNIVERSITARIO" >> return Universitario) <|>
+  -- (PB.string "01 - TOP" >> return Top)
 
 -- parseNameProv = do
 --   char '\"'

@@ -3,16 +3,18 @@ module Main where
 
 import Lib 
 
-import Text.Printf (printf)
-
+-- import Text.Printf (printf)
 
 import Parser.Attoparsec
+
+
 import Data.Attoparsec.ByteString.Char8  hiding (ByteString, take)
 import qualified Data.Attoparsec.ByteString as PB hiding (skip,skipWhile,take)
 
 -- import qualified Data.List as List
 -- import qualified Data.ByteString.Lazy as B hiding (split, pack)
-import qualified Data.ByteString.Lazy.Char8 as B hiding (ByteString)-- (split, pack)
+import qualified Data.ByteString.Lazy.Char8 as BL8 -- hiding (ByteString)-- (split, pack)
+import Data.ByteString hiding (take, drop, putStrLn)
 import qualified Data.Vector as V
 
 import Control.Applicative
@@ -25,25 +27,31 @@ import Control.Applicative
 --   parseLogic csv
 
 main = do
-  let (feats, resps) = preprocessRow testStr
+  let (feats, resps) = preprocessRow (BL8.fromStrict testStr) -- (B.pack testStr)
       f = PB.parseOnly parseCustomerData feats
       r = PB.parseOnly parseResponses resps
   case f of
     Left e -> putStrLn e
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
-    where
-      testStr = B.pack "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N,0,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 
+testStr = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1,x,1,I,S,N,0,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+testStr1 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+testStr2 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1,0,1,I,S,N,0,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,"
 
+-- try out a parser and print the result to stdout
+test :: ByteString -> IO ()
+test = parseTest parseCustomerData
 
-preprocessRow r = (feat, resp)
+-- split a data row in inputs and responses (NB: takes a lazy bytestring and returns two strict bytestrings)
+preprocessRow :: BL8.ByteString -> (ByteString, ByteString)
+preprocessRow r = (x_, y_)
   where
     n = 24
-    rc = B.split ',' r
-    feat = intercf $ take n rc
-    resp = intercf $ drop n rc
-    intercf = B.toStrict . B.intercalate (B.pack ",")
+    rc = BL8.split ',' r
+    x_ = intercf $ take n rc
+    y_ = intercf $ drop n rc
+    intercf = BL8.toStrict . BL8.intercalate (BL8.pack ",")
 
 
 
@@ -77,52 +85,7 @@ CIUDAD REAL,
 0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 -}
 
--- skipField = 
---   skipWhile (\c -> isAlpha_ascii c || isDigit c || isSpace c)
 
--- -- splitFields = splitOn ","
-
-
--- parseTemp = do
---   fd <- parseDate <* comma
---   ncod <- decimal <* comma
---   ind_empl <- parseEmployeeStatus <* comma
---   p <- parseCountry <* comma
---   s <- parseGender <* comma
---   a <- decimal <* comma
---   fa <- parseDate <* comma
---   indn <- parseBit <* comma
---   ant <- decimal <* comma
---   indr <- parseIndRel <* comma
---   ult <- PB.option 0 (decimal <* comma)
---   indr1m <- parseIndRel1Mes <* comma
---   tipr1m <- PB.option TR_NA (parseTipRel1Mes <* comma)
---   indrs <- parseBooleanES <* comma
---   indxt <- parseBooleanES <* comma
---   conyu <- PB.option False (parseBit <* comma)
---   -- canale <- parseCanalEntrada <* comma
---   -- -- skipField
---   -- -- dead <- parseBooleanES <* comma
---   -- skipField
---   -- -- tipod <- parseBit <* comma
---   -- skipField
---   -- -- codpr <- decimal <* comma
---   -- skipField
---   -- nomprov <- parseProvince <* comma
---   -- skipField
---   -- -- ind_actividad' <- parseBit <* comma
---   -- skipField
---   -- -- sal <- rational <* comma
---   -- -- segm <- parseSegment <* comma
---   -- skipField
---   -- endOfLine
---   return (fd, ncod, ind_empl, p, s, a, fa, indn, ant, indr1m, tipr1m, indrs, indxt, conyu)
---   -- return (fd, ncod, ind_empl, pais', sexo', age, fecha_alta', ind_nuevo', antiguedad', indrel', ult_fec_cli_1t')
-
-
--- data T0 = T0 {prova0 :: !Int, prova1 :: !String} deriving (Eq, Show, Generic)
--- instance FromNamedRecord T0 where
---   parseNamedRecord r = T0 <$> r .: "prova0" <*> r .: "prova1"
 
 
 -- main :: IO ()
