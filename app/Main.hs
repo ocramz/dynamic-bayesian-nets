@@ -27,7 +27,7 @@ import Control.Applicative
 --   parseLogic csv
 
 main = do
-  let row = s0 -- (B.pack testStr)
+  let row = s5 -- (B.pack testStr)
       -- f = PB.parseOnly parseCustomerData feats
       res = PB.parseOnly parseCustomer row -- resps
   case res of
@@ -43,6 +43,8 @@ s3 = BL8.toStrict "2015-01-28,1030918,N,ES,V,22,2012-07-25,0,36,1, ,1,I,S,N, ,KH
 
 -- this is correctly parsed
 s4 = BL8.toStrict "2015-01-28,1031069,N,ES,V,59,2012-07-25,0,36,1, ,1.0,A,S,N, ,KFA,N,1,28,MADRID,1,84887.88,01 - TOP,0,0,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0\n"
+
+s5 = BL8.toStrict "2015-01-28,1030835, , , , , , , , , , , , , , , , , , , , , , ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, , ,0\n"
 
 -- try out a parser and print the result to stdout
 test :: ByteString -> IO ()

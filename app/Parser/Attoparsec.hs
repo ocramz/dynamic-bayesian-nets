@@ -70,30 +70,30 @@ optionalWS p = (space >> return Nothing) <|> (Just <$> p)
 
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
-  fd <- optionalWS $ parseDate <* comma
-  ncod <- optionalWS $ decimal <* comma
-  ind_empl <- optionalWS $ parseEmployeeStatus <* comma
-  country <- optionalWS $ parseCountry <* comma
-  gender <- optionalWS $ parseGender <* comma
-  a <- optionalWS $ decimal <* comma
-  fa <- optionalWS $ parseDate <* comma
-  newcustomer <- optionalWS $ parseBit <* comma
-  acct_age <- optionalWS $ decimal <* comma
-  ir <- optionalWS $ parseIndRel <* comma
+  fd <- optionalWS parseDate <* comma
+  ncod <- optionalWS decimal <* comma
+  ind_empl <- optionalWS parseEmployeeStatus <* comma
+  country <- optionalWS parseCountry <* comma
+  gender <- optionalWS parseGender <* comma
+  a <- optionalWS decimal <* comma
+  fa <- optionalWS parseDate <* comma
+  newcustomer <- optionalWS parseBit <* comma
+  acct_age <- optionalWS decimal <* comma
+  ir <- optionalWS parseIndRel <* comma
   ufc1t <- optionalWS parseDate <* comma -- optional (parseDate <* comma) <* comma
-  ir_1m <- optionalWS $ parseIndRel1Mes <* comma     -- 1
-  tr_1m <- optionalWS $ parseTipRel1Mes <* comma     -- I 
-  ind_resi <- optionalWS $ parseBooleanES <* comma   -- S
-  ind_ext <- optionalWS $ parseBooleanES <* comma    -- N
+  ir_1m <- optionalWS parseIndRel1Mes <* comma     -- 1
+  tr_1m <- optionalWS parseTipRel1Mes <* comma     -- I 
+  ind_resi <- optionalWS parseBooleanES <* comma   -- S
+  ind_ext <- optionalWS parseBooleanES <* comma    -- N
   conyu_emp <- optionalWS parseBit <* comma -- optional $ parseBit <* comma
-  canale <- optionalWS $ parseCanalEntrada <* comma
-  dead <- optionalWS $ parseBooleanES <* comma
-  tipo_dom <- optionalWS $ parseBit <* comma
-  cod_prov <- optionalWS $ decimal <* comma
-  nom_prov <- optionalWS $ parseProvince <* comma
-  ind_activ <- optionalWS $ parseBit <* comma
-  salary <- optionalWS $ double <* comma
-  segm <- optionalWS $ parseSegment <* comma
+  canale <- optionalWS parseCanalEntrada <* comma
+  dead <- optionalWS parseBooleanES <* comma
+  tipo_dom <- optionalWS parseBit <* comma
+  cod_prov <- optionalWS decimal <* comma
+  nom_prov <- optionalWS parseProvince <* comma
+  ind_activ <- optionalWS parseBit <* comma
+  salary <- optionalWS double <* comma
+  segm <- optionalWS parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
 -- parseUfc1t = parseDate <|> space
@@ -110,13 +110,12 @@ data Responses =
              ind_ecue_fin_ult1, ind_fond_fin_ult1, ind_hip_fin_ult1,
              ind_plan_fin_ult1, ind_pres_fin_ult1, ind_reca_fin_ult1,
              ind_tjcr_fin_ult1, ind_valo_fin_ult1, ind_viv_fin_ult1,
-             ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Bool}
+             ind_nomina_ult1, ind_nom_pens_ult1, ind_recibo_ult1  :: Maybe Bool}
   deriving (Eq, Show)
 
-parseResponses :: Parser B.ByteString Responses
-parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBit where
-  parseBEntry :: Parser B.ByteString Bool            
-  parseBEntry = parseBit <* comma
+-- parseResponses :: Parser B.ByteString Responses
+parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> optionalWS parseBit where
+  parseBEntry = optionalWS $ parseBit <* comma
 
 
 
@@ -187,10 +186,11 @@ parseBooleanES = (char8 'S' >> return True) <|>
                  (char8 'N' >> return False)
 
 
-data CanalEntrada = KHE | KHD | KAT deriving (Eq, Show)
+data CanalEntrada = KHE | KHD | KFA | KFC | KAT deriving (Eq, Show)
 parseCanalEntrada :: Parser B.ByteString CanalEntrada
 parseCanalEntrada = (PB.string "KHE" >> return KHE) <|>
-                    (PB.string "KFA" >> return KHE) <|>
+                    (PB.string "KFA" >> return KFA) <|>
+                    (PB.string "KFC" >> return KFC) <|>                    
                     (PB.string "KHD" >> return KHD) <|>
                     (PB.string "KAT" >> return KAT)
   
@@ -198,7 +198,7 @@ data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid
               | Cantabria | Cordoba | Zamora | Pontevedra | Girona | Caceres
               | Lerida | Jaen | Burgos | Malaga | Sevilla | CiudadReal | Cuenca
               | IllesBalears | Zaragoza | Castellon | Valencia | Salamanca | Huesca
-              | Badajoz | Navarra | Leon | Palencia | Ourense | Rioja deriving (Eq, Show)
+              | Badajoz | Navarra | Leon | Palencia | Ourense | Rioja | SCTenerife deriving (Eq, Show)
 parseProvince :: Parser B.ByteString Province                
 parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "MADRID" >> return Madrid) <|>
@@ -230,7 +230,8 @@ parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "LEON" >> return Leon) <|>            
             (PB.string "PALENCIA" >> return Palencia) <|>
             (PB.string "OURENSE" >> return Ourense) <|>
-            (PB.string "RIOJA" >> return Rioja)
+            (PB.string "RIOJA" >> return Rioja) <|>
+            (PB.string "SANTA CRUZ DE TENERIFE" >> return SCTenerife)
 
 
 data Country = ES deriving (Eq, Show)
