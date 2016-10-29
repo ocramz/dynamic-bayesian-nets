@@ -33,22 +33,22 @@ data Customer = Customer CustomerData Responses deriving (Eq, Show)
 -- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
 
 data CustomerData =
-  CustomerData {fecha_dato :: Day,
-                ncodpers :: Int,
-                ind_empleado :: EmployeeStatus,
-                pais :: Country,
-                sexo :: Gender,
-                age :: Int,
-                fecha_alta :: Day,         -- date
-                ind_nuevo :: Bool,
-                antiguedad :: Int,   
-                indrel :: Bool,
-                ult_fec_cli_1t :: Maybe Char,     -- can be empty
-                indrel_1mes :: IndRel1Mes,
-                tiprel_1mes :: TipRel1Mes,
-                indresi :: Bool,
-                indext :: Bool,
-                conyuemp :: Maybe Char,        -- can be empty
+  CustomerData {fecha_dato :: Maybe Day,
+                ncodpers :: Maybe Int,
+                ind_empleado :: Maybe EmployeeStatus,
+                pais :: Maybe Country,
+                sexo :: Maybe Gender,
+                age :: Maybe Int,
+                fecha_alta :: Maybe Day,         -- date
+                ind_nuevo :: Maybe Bool,
+                antiguedad :: Maybe Int,   
+                indrel :: Maybe Bool,
+                ult_fec_cli_1t :: Maybe Day,     -- can be empty
+                indrel_1mes :: Maybe IndRel1Mes,
+                tiprel_1mes :: Maybe TipRel1Mes,
+                indresi :: Maybe Bool,
+                indext :: Maybe Bool,
+                conyuemp :: Maybe Bool,          -- can be empty
                 canalentrada :: Maybe CanalEntrada,
                 deceased :: Maybe Bool,
                 tipodom :: Maybe Bool,
@@ -63,37 +63,43 @@ data CustomerData =
 optional :: Alternative f => f a -> f (Maybe a)
 optional p = PB.option Nothing (Just <$> p)
 
+-- | return Nothing if space is encountered, otherwise apply parser
+optionalWS :: Parser B.ByteString a -> Parser B.ByteString (Maybe a)
+optionalWS p = (space >> return Nothing) <|> (Just <$> p)
+
 
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
-  fd <- parseDate <* comma
-  ncod <- decimal <* comma
-  ind_empl <- parseEmployeeStatus <* comma
-  country <- parseCountry <* comma
-  gender <- parseGender <* comma
-  a <- decimal <* comma
-  fa <- parseDate <* comma
-  newcustomer <- parseBit <* comma
-  acct_age <- decimal <* comma
-  ir <- parseIndRel <* comma
-  ufc1t <- optional space <* comma -- optional (parseDate <* comma) <* comma
-  ir_1m <- parseIndRel1Mes <* comma     -- 1
-  tr_1m <- parseTipRel1Mes <* comma     -- I 
-  ind_resi <- parseBooleanES <* comma   -- S
-  ind_ext <- parseBooleanES <* comma    -- N
-  conyu_emp <- optional space <* comma -- optional $ parseBit <* comma
-  canale <- optional $ parseCanalEntrada <* comma
-  dead <- optional $ parseBooleanES <* comma
-  tipo_dom <- optional $ parseBit <* comma
-  cod_prov <- optional $ decimal <* comma
-  nom_prov <- optional $ parseProvince <* comma
-  ind_activ <- optional $ parseBit <* comma
-  salary <- optional $ double <* comma
-  segm <- optional $ parseSegment <* comma
+  fd <- optionalWS $ parseDate <* comma
+  ncod <- optionalWS $ decimal <* comma
+  ind_empl <- optionalWS $ parseEmployeeStatus <* comma
+  country <- optionalWS $ parseCountry <* comma
+  gender <- optionalWS $ parseGender <* comma
+  a <- optionalWS $ decimal <* comma
+  fa <- optionalWS $ parseDate <* comma
+  newcustomer <- optionalWS $ parseBit <* comma
+  acct_age <- optionalWS $ decimal <* comma
+  ir <- optionalWS $ parseIndRel <* comma
+  ufc1t <- optionalWS parseDate <* comma -- optional (parseDate <* comma) <* comma
+  ir_1m <- optionalWS $ parseIndRel1Mes <* comma     -- 1
+  tr_1m <- optionalWS $ parseTipRel1Mes <* comma     -- I 
+  ind_resi <- optionalWS $ parseBooleanES <* comma   -- S
+  ind_ext <- optionalWS $ parseBooleanES <* comma    -- N
+  conyu_emp <- optionalWS parseBit <* comma -- optional $ parseBit <* comma
+  canale <- optionalWS $ parseCanalEntrada <* comma
+  dead <- optionalWS $ parseBooleanES <* comma
+  tipo_dom <- optionalWS $ parseBit <* comma
+  cod_prov <- optionalWS $ decimal <* comma
+  nom_prov <- optionalWS $ parseProvince <* comma
+  ind_activ <- optionalWS $ parseBit <* comma
+  salary <- optionalWS $ double <* comma
+  segm <- optionalWS $ parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
 -- parseUfc1t = parseDate <|> space
 
+-- parseUfc1t = do
+--   x <- parseDate
 
 
 data Responses =
@@ -111,6 +117,8 @@ parseResponses :: Parser B.ByteString Responses
 parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBit where
   parseBEntry :: Parser B.ByteString Bool            
   parseBEntry = parseBit <* comma
+
+
 
 
 
@@ -155,12 +163,14 @@ parseIndRel = (PB.string "1" >> return True) <|>
 -- indrel_1mes	Customer type at the beginning of the month ,1 (First/Primary customer), 2 (co-owner ),P (Potential),3 (former primary), 4(former co-owner)
 data IndRel1Mes = Primary | CoOwner | Potential | FormerPrimary | FormerCoOwner | IndRel1Mes_NA deriving (Eq, Show)
 parseIndRel1Mes :: Parser B.ByteString IndRel1Mes
-parseIndRel1Mes = (char8 '1' >> return Primary) <|>
-                  (char8 '2' >> return CoOwner) <|>
-                  (char8 'P' >> return Potential) <|>
-                  (char8 '3' >> return FormerPrimary) <|>
-                  (char8 '4' >> return FormerCoOwner) <|>
-                  (PB.many' space >> return IndRel1Mes_NA)
+parseIndRel1Mes =
+  (PB.string "1.0" >> return Primary) <|>
+  (char8 '1' >> return Primary) <|>
+  (char8 '2' >> return CoOwner) <|>
+  (char8 'P' >> return Potential) <|>
+  (char8 '3' >> return FormerPrimary) <|>
+  (char8 '4' >> return FormerCoOwner) <|>
+  (PB.many' space >> return IndRel1Mes_NA)
 
 -- tiprel_1mes	Customer relation type at the beginning of the month, A (active), I (inactive), P (former customer),R (Potential)
 data TipRel1Mes = TRActive | TRInactive | TRFormerCustomer | TRPotential | TR_NA deriving (Eq, Show)
@@ -180,6 +190,7 @@ parseBooleanES = (char8 'S' >> return True) <|>
 data CanalEntrada = KHE | KHD | KAT deriving (Eq, Show)
 parseCanalEntrada :: Parser B.ByteString CanalEntrada
 parseCanalEntrada = (PB.string "KHE" >> return KHE) <|>
+                    (PB.string "KFA" >> return KHE) <|>
                     (PB.string "KHD" >> return KHD) <|>
                     (PB.string "KAT" >> return KAT)
   
@@ -191,7 +202,7 @@ data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid
 parseProvince :: Parser B.ByteString Province                
 parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "MADRID" >> return Madrid) <|>
-            (PB.string "CORUÃ‘A, A" >> return Coruna) <|>
+            (PB.string "CORUÑA, A" >> return Coruna) <|>
             (PB.string "ALICANTE" >> return Alicante) <|>
             (PB.string "ALBACETE" >> return Albacete) <|>
             (PB.string "VALLADOLID" >> return Valladolid) <|>
