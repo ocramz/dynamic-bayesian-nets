@@ -35,9 +35,9 @@ main = do
     -- Right v -> V.forM_ v $ \ c -> print c
     Right t -> print t
 
-testStr = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1,x,1,I,S,N,0,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+testStr = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 testStr1 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
-testStr2 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1,0,1,I,S,N,0,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,"
+testStr2 = BL8.toStrict "2015-01-28,1050613,N,ES,H,22,2012-08-10,0,35,1, ,1,I,S,N, ,KHD,N,1,50,ZARAGOZA,0,119775.54,03 - UNIVERSITARIO,"
 
 -- try out a parser and print the result to stdout
 test :: ByteString -> IO ()

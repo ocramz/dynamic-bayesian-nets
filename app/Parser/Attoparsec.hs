@@ -43,12 +43,12 @@ data CustomerData =
                 ind_nuevo :: Bool,
                 antiguedad :: Int,   
                 indrel :: Bool,
-                ult_fec_cli_1t :: Maybe Day,     -- can be empty
+                ult_fec_cli_1t :: Maybe Char,     -- can be empty
                 indrel_1mes :: IndRel1Mes,
                 tiprel_1mes :: TipRel1Mes,
                 indresi :: Bool,
                 indext :: Bool,
-                conyuemp :: Maybe Bool,        -- can be empty
+                conyuemp :: Maybe Char,        -- can be empty
                 canalentrada :: Maybe CanalEntrada,
                 deceased :: Maybe Bool,
                 tipodom :: Maybe Bool,
@@ -60,8 +60,8 @@ data CustomerData =
                 } deriving (Eq, Show)
 
 -- | useful device
-parserMaybe :: Alternative f => f a -> f (Maybe a)
-parserMaybe p = PB.option Nothing (Just <$> p)
+optional :: Alternative f => f a -> f (Maybe a)
+optional p = PB.option Nothing (Just <$> p)
 
 
 parseCustomerData :: Parser B.ByteString CustomerData
@@ -76,20 +76,20 @@ parseCustomerData = do
   newcustomer <- parseBit <* comma
   acct_age <- decimal <* comma
   ir <- parseIndRel <* comma
-  ufc1t <- parserMaybe (parseDate <* comma) <* comma
+  ufc1t <- optional space <* comma -- optional (parseDate <* comma) <* comma
   ir_1m <- parseIndRel1Mes <* comma     -- 1
   tr_1m <- parseTipRel1Mes <* comma     -- I 
   ind_resi <- parseBooleanES <* comma   -- S
   ind_ext <- parseBooleanES <* comma    -- N
-  conyu_emp <- parserMaybe $ PB.option False (parseBit <* comma)
-  canale <- parserMaybe $ parseCanalEntrada <* comma
-  dead <- parserMaybe $ parseBooleanES <* comma
-  tipo_dom <- parserMaybe $ parseBit <* comma
-  cod_prov <- parserMaybe $ decimal <* comma
-  nom_prov <- parserMaybe $ parseProvince <* comma
-  ind_activ <- parserMaybe $ parseBit <* comma
-  salary <- parserMaybe $ double <* comma
-  segm <- parserMaybe $ parseSegment <* comma
+  conyu_emp <- optional space <* comma -- optional $ parseBit <* comma
+  canale <- optional $ parseCanalEntrada <* comma
+  dead <- optional $ parseBooleanES <* comma
+  tipo_dom <- optional $ parseBit <* comma
+  cod_prov <- optional $ decimal <* comma
+  nom_prov <- optional $ parseProvince <* comma
+  ind_activ <- optional $ parseBit <* comma
+  salary <- optional $ double <* comma
+  segm <- optional $ parseSegment <* comma
   return $ CustomerData fd ncod ind_empl country gender a fa newcustomer acct_age ir ufc1t ir_1m tr_1m ind_resi ind_ext conyu_emp canale dead tipo_dom cod_prov nom_prov ind_activ salary segm
 
 -- parseUfc1t = parseDate <|> space
@@ -230,12 +230,12 @@ data Segment = Universitario | Particulares | Top deriving (Eq, Show)
 
 parseSegment :: Parser B.ByteString Segment
 parseSegment =
-    (PB.string "02" >> return Particulares) <|>
-  (PB.string "03" >> return Universitario) <|>
-  (PB.string "01" >> return Top)
-  -- (PB.string "02 - PARTICULARES" >> return Particulares) <|>
-  -- (PB.string "03 - UNIVERSITARIO" >> return Universitario) <|>
-  -- (PB.string "01 - TOP" >> return Top)
+  --   (PB.string "02" >> return Particulares) <|>
+  -- (PB.string "03" >> return Universitario) <|>
+  -- (PB.string "01" >> return Top)
+  (PB.string "02 - PARTICULARES" >> return Particulares) <|>
+  (PB.string "03 - UNIVERSITARIO" >> return Universitario) <|>
+  (PB.string "01 - TOP" >> return Top)
 
 -- parseNameProv = do
 --   char '\"'
