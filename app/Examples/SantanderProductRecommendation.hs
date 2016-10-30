@@ -18,7 +18,7 @@ import qualified Data.Vector as V
 import Control.Applicative
 
 
-datasetPath = "test-data/train-part-noheader.csv"
+datasetPath = "test-data/SantanderProductRecommendation/train-part-noheader.csv"
 
 
 main = do
