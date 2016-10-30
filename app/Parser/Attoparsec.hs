@@ -142,9 +142,9 @@ comma = char8 ','
 parseDate :: Parser B.ByteString Day
 parseDate = do
   y <- decimal
-  char '-'
+  _ <- char '-'
   m <- decimal
-  char '-'
+  _ <- char '-'
   d <- decimal
   return $ fromGregorian y m d
 
@@ -214,7 +214,7 @@ data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid
 parseProvince :: Parser B.ByteString Province                
 parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "MADRID" >> return Madrid) <|>
-            -- (PB.string "CORUÑA, A" >> return Coruna) <|>
+            (PB.string "CORUÑA, A" >> return Coruna) <|>
             (PB.string "CORU\209A, A" >> return Coruna) <|>     -- I know, I know 
             (PB.string "ALICANTE" >> return Alicante) <|>
             (PB.string "ALBACETE" >> return Albacete) <|>
