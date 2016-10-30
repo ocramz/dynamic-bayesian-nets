@@ -40,16 +40,16 @@ test = parseTest parseData
 -- | load from a bytestring declared here or with `readFile` according to the LoadOption
 data LoadOption = LLocal | LCsv deriving (Eq, Show)
 
-printData :: Show a => LoadOption -> (Customer -> Maybe a) -> B.ByteString -> IO ()
-printData t f rd = do
+-- printData :: Show a => LoadOption -> (Customer -> Maybe a) -> B.ByteString -> IO ()
+printData :: Show a => LoadOption -> (V.Vector Customer -> V.Vector a1) -> (a1 -> a) -> B.ByteString -> IO ()
+printData t f g rd = do
   xr <- case t of LLocal -> return rd
                   LCsv -> B.readFile datasetPath
   let res = PB.parseOnly parseData xr
   case res of
     Left e -> putStrLn e
-    Right v -> do
-      let vf = filterJust f v
-      V.mapM_ (print . fromJust . f) vf
+    Right v -> 
+      V.mapM_ (print . g) (f v)
 
 -- helpers
 
@@ -89,6 +89,8 @@ s5 = BL8.toStrict "2015-01-28,1030835, , , , , , , , , , , , , , , , , , , , , ,
 
 s6 = BL8.toStrict "2015-01-28,1031396,N,ES,V,32,2012-07-25,0,36,1, ,1.0,I,S,S, ,KFC,N,1,28,MADRID,0,97886.4,02 - PARTICULARES,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n"
 
+
+s7 = BL8.toStrict "2015-01-28,1040205,N,ES,V,25,2012-08-02,1,0,1, ,3.0,P,S,N, , ,N,1,41,SEVILLA,1,122290.17, ,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
 
 -- | Specs
 

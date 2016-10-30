@@ -125,7 +125,7 @@ data Responses =
 
 parseResponses :: Parser B.ByteString Responses
 parseResponses = Responses <$> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> parseBEntry <*> optionalWS parseBit where
-  parseBEntry = optionalWS $ parseBit <* comma
+  parseBEntry = optionalWS parseBit <* comma
 
 
 
@@ -178,6 +178,7 @@ parseIndRel1Mes =
   (char8 '2' >> return CoOwner) <|>
   (char8 'P' >> return Potential) <|>
   (char8 '3' >> return FormerPrimary) <|>
+  (PB.string "3.0" >> return FormerPrimary) <|>  
   (char8 '4' >> return FormerCoOwner) <|>
   (PB.many' space >> return IndRel1Mes_NA)
 
@@ -196,25 +197,43 @@ parseBooleanES = (char8 'S' >> return True) <|>
                  (char8 'N' >> return False)
 
 
-data CanalEntrada = KHE | KHD | KFA | KFC | KAT deriving (Eq, Show)
+data CanalEntrada = KEH | KHE | KHD | KFA | KFC | KGN | KGC | KHC | KHK | KHL
+                  | KHM | KHO | KAD | KAT | KAZ | KBG | KDH | RED deriving (Eq, Show)
+                    
 parseCanalEntrada :: Parser B.ByteString CanalEntrada
-parseCanalEntrada = (PB.string "KHE" >> return KHE) <|>
+parseCanalEntrada = (PB.string "KEH" >> return KEH) <|>
+  (PB.string "KHE" >> return KHE) <|>
                     (PB.string "KFA" >> return KFA) <|>
-                    (PB.string "KFC" >> return KFC) <|>                    
+                    (PB.string "KFC" >> return KFC) <|>
+                    (PB.string "KGC" >> return KGC) <|>                     
+                    (PB.string "KGN" >> return KGN) <|>                    
+                    (PB.string "KHC" >> return KHC) <|>                    
                     (PB.string "KHD" >> return KHD) <|>
-                    (PB.string "KAT" >> return KAT)
+                    (PB.string "KHK" >> return KHK) <|>
+                    (PB.string "KHL" >> return KHL) <|>
+                    (PB.string "KHM" >> return KHM) <|>
+                    (PB.string "KHO" >> return KHO) <|>
+                    (PB.string "KAD" >> return KAD) <|>                    
+                    (PB.string "KAT" >> return KAT) <|>
+                    (PB.string "KAZ" >> return KAZ) <|>
+                    (PB.string "KBG" >> return KBG) <|>                    
+                    (PB.string "KDH" >> return KDH) <|>                    
+                    (PB.string "RED" >> return RED)                  
   
 data Province = Barcelona | Madrid | Coruna | Alicante | Albacete | Valladolid
               | Cantabria | Cordoba | Zamora | Pontevedra | Girona | Caceres
               | Lerida | Jaen | Burgos | Malaga | Sevilla | CiudadReal | Cuenca
               | IllesBalears | Zaragoza | Castellon | Valencia | Salamanca | Huesca
               | Badajoz | Navarra | Leon | Palencia | Ourense | Rioja | SCTenerife
-              | Toledo | Avila | Lugo | Segovia | Soria | Teruel | Bizkaia deriving (Eq, Show)
+              | Toledo | Avila | Lugo | Segovia | Soria | Teruel | Bizkaia
+              | Gipuzkoa | Murcia | Cadiz | Almeria | Guadalajara | LasPalmas
+              | Huelva | Granada | Asturias | Melilla | Tarragona | Alava | Ceuta deriving (Eq, Show)
                 
 parseProvince :: Parser B.ByteString Province                
 parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "MADRID" >> return Madrid) <|>
             (PB.string "CORUÑA, A" >> return Coruna) <|>
+            (PB.string "CORUNA, A" >> return Coruna) <|>            
             (PB.string "CORU\209A, A" >> return Coruna) <|>     -- I know, I know 
             (PB.string "ALICANTE" >> return Alicante) <|>
             (PB.string "ALBACETE" >> return Albacete) <|>
@@ -243,7 +262,7 @@ parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "LEON" >> return Leon) <|>            
             (PB.string "PALENCIA" >> return Palencia) <|>
             (PB.string "OURENSE" >> return Ourense) <|>
-            (PB.string "RIOJA" >> return Rioja) <|>
+            (PB.string "RIOJA, LA" >> return Rioja) <|>
             (PB.string "SANTA CRUZ DE TENERIFE" >> return SCTenerife) <|>
             (PB.string "TOLEDO" >> return Toledo) <|>
             (PB.string "AVILA" >> return Avila) <|>
@@ -251,12 +270,33 @@ parseProvince = (PB.string "BARCELONA" >> return Barcelona) <|>
             (PB.string "SEGOVIA" >> return Segovia) <|>
             (PB.string "SORIA" >> return Soria) <|>
             (PB.string "TERUEL" >> return Teruel) <|>
-            (PB.string "BIZKAIA" >> return Bizkaia)             
+            (PB.string "BIZKAIA" >> return Bizkaia) <|>
+            (PB.string "GIPUZKOA" >> return Gipuzkoa) <|>
+            (PB.string "MURCIA" >> return Murcia) <|>
+            (PB.string "CADIZ" >> return Cadiz) <|>
+            (PB.string "ALMERIA" >> return Almeria) <|>
+            (PB.string "GUADALAJARA" >> return Guadalajara) <|>
+            (PB.string "PALMAS, LAS" >> return LasPalmas) <|>
+            (PB.string "HUELVA" >> return Huelva) <|>
+            (PB.string "GRANADA" >> return Granada) <|>
+            (PB.string "ASTURIAS" >> return Asturias) <|>
+            (PB.string "MELILLA" >> return Melilla) <|>
+            (PB.string "TARRAGONA" >> return Tarragona) <|>
+            (PB.string "ALAVA" >> return Alava) <|>
+            (PB.string "CEUTA" >> return Ceuta)            
 
 
-data Country = ES deriving (Eq, Show)
+data Country = ES | CA | CH | CL | IE | AT | NL | FR | GB deriving (Eq, Show)
 parseCountry :: Parser B.ByteString Country
-parseCountry = PB.string "ES" >> return ES
+parseCountry = (PB.string "ES" >> return ES) <|>
+               (PB.string "CA" >> return CA) <|>
+               (PB.string "CH" >> return CH) <|>
+               (PB.string "CL" >> return CL) <|>
+               (PB.string "IE" >> return IE) <|>
+               (PB.string "AT" >> return AT) <|>
+               (PB.string "NL" >> return NL) <|>
+               (PB.string "FR" >> return FR) <|>
+               (PB.string "GB" >> return GB)               
 
 data Segment = Universitario | Particulares | Top deriving (Eq, Show)
 
