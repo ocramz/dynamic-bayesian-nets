@@ -21,6 +21,7 @@ library
   exposed-modules:     Lib
   build-depends:       base >= 4.7 && < 5
                      , bytestring
+                     , containers
                      , vector
                      , attoparsec
                      , cassava

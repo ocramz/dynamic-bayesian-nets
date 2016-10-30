@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Examples.SantanderProductRecommendation where
 
+import Lib
 import Parser.Attoparsec
 
 import Data.Maybe
