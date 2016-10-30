@@ -43,8 +43,8 @@ asdf = projectCustomer (\c _ -> isJust (age c))
 -- 2016-06-28,1170545,N,ES,V,22,2013-08-28,0,34,1,,1,A,S,N,,KHE,N,1,15,"CORUÃ‘A, A",1,,03 - UNIVERSITARIO
 
 data CustomerData =
-  CustomerData {fecha_dato :: Maybe Day,         -- date of record
-                ncodpers :: Maybe Int,           -- customer code
+  CustomerData {fecha_dato :: Day,         -- date of record
+                ncodpers :: Int,           -- customer code
                 ind_empleado :: Maybe EmployeeStatus, -- employee status
                 pais :: Maybe Country,           -- country
                 sexo :: Maybe Gender,            -- gender
@@ -80,8 +80,8 @@ optionalWS p = (space >> return Nothing) <|> (Just <$> p)
 
 parseCustomerData :: Parser B.ByteString CustomerData
 parseCustomerData = do
-  fd <- optionalWS parseDate <* comma
-  ncod <- optionalWS decimal <* comma
+  fd <- parseDate <* comma
+  ncod <- decimal <* comma
   ind_empl <- optionalWS parseEmployeeStatus <* comma
   country <- optionalWS parseCountry <* comma
   gender <- optionalWS parseGender <* comma

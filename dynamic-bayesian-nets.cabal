@@ -8,11 +8,11 @@ license-file:        LICENSE
 author:              Marco Zocca
 maintainer:          zocca marco gmail
 copyright:           2016 Marco Zocca
-category:            Acme
+category:            Statistics
 build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
-tested-with:         GHC == 7.10.2
+tested-with:         GHC == 8.0.1
 
 library
   default-language:    Haskell2010
@@ -33,6 +33,7 @@ executable dynamic-bayesian-nets
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs:      app
   main-is:             Main.hs
+  other-modules:       Examples.SantanderProductRecommendation
   build-depends:       base
                      , attoparsec
                      , bytestring
