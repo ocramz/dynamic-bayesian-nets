@@ -16,6 +16,10 @@ import Data.Ord (comparing)
 
 import qualified Data.Map as M
 
+-- | sort histogram by descending density
+sortHist :: [(a, Double)] -> [(a, Double)]
+sortHist = sortBy (flip (comparing snd)) 
+
 
 -- | a histogram function for lists
 {-
@@ -24,8 +28,8 @@ hist ['a', 'b'] = [('a', 0.5), ('b', 0.5)]
 hist ['a', 'b', 'c'] = [('a', 1/3), ('b', 1/3), ('c', 1/3)]
 hist ['a', 'b', 'c', 'a'] = [('a', 0.5), ('b', 0.25), ('c', 0.25)]
 -}
-hist :: (Ord a, Ord p, Fractional p) => [a] -> [(a, p)]
-hist ll = sortBy (flip (comparing snd)) $ map f ll' where
+hist :: Ord a => [a] -> [(a, Double)]
+hist ll = sortHist $ map f ll' where
   ll' = group (sort ll)
   n = length ll
   f e = (head e, fromIntegral (length e) / fromIntegral n)
@@ -53,25 +57,29 @@ fromFoldableBM :: (Foldable t, Ord a) => t a -> BinMap a
 fromFoldableBM xs = insertFoldableBM xs emptyBM
 
 -- a map for densities
-data ProbMap a = ProbMap { probmap :: M.Map a Double} deriving Show
+data ProbMap a = ProbMap { probmap :: M.Map a Double } deriving Show
 
-histBinMap :: BinMap a -> ProbMap a
-histBinMap bm = ProbMap (M.map densf mm) where
+-- | compute densities by normalizing bin counts
+bm2pm :: BinMap a -> ProbMap a
+bm2pm bm = ProbMap (M.map densf mm) where
   mm = binmap bm
   n = nelbm bm
   densf x = fromIntegral x / fromIntegral n
 
 histPM :: (Foldable t, Ord k) => t k -> [(k, Double)]
-histPM ll = M.toList pm where
- (ProbMap pm) = histBinMap (fromFoldableBM ll)
+histPM ll = sortHist $ M.toList pm where
+ (ProbMap pm) = bm2pm (fromFoldableBM ll)
 
 
 
 -- examples
 
--- bm0 = fromListBM "abca"
+pm0 = histPM ("abcad" :: String)
 
 
+data Bases = A | T | G | C deriving (Eq, Ord, Show)
+
+pm1 = histPM [A,T,C,G,A,C,A,C,G,A]
 
 
 --
